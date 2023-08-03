@@ -1,7 +1,7 @@
 import Hash from '@ioc:Adonis/Core/Hash'
 // import auth  from '@ioc:Adonis/Addons/Auth'
 import User from 'App/Models/User'
-import { LoginData, RegisterData } from 'App/Interfaces/Auth/AuthInterface'
+import {RegisterData } from 'App/Interfaces/Auth/AuthInterface'
 
 export default class AuthService {
 

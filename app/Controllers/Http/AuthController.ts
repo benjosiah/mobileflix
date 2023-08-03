@@ -43,7 +43,7 @@ export default class AuthController {
             // If the error is a ValidationException, handle validation errors
             return response.status(422).json({
               message: 'Validation failed',
-              errors: error.messages
+              errors: error
             
             });
           }
