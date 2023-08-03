@@ -24,6 +24,7 @@
     "@adonisjs/assembler": "^5.9.5",
     "@adonisjs/auth": "^8.2.3",
     "@adonisjs/core": "^5.9.0",
+    "@adonisjs/generic-exceptions": "^3.0.1",
     "@adonisjs/lucid": "^18.4.0",
     "@adonisjs/repl": "^3.1.11",
     "luxon": "^3.3.0",
