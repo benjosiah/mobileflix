@@ -1,5 +1,5 @@
 import Transaction from "App/Models/Transaction"
-import { PaystackAxios} from "../../axios"
+import { PaystackAxios} from "../../axiosWraper"
 import {InitiatePayment, CardPayment} from "../Interfaces/PaymentInterface"
 import Card from "App/Models/Card"
 // import Wallet from "App/Models/Wallet"

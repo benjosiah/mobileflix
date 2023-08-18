@@ -11,7 +11,7 @@ export default class Wallet extends BaseModel {
   public user_id: number
 
   @column()
-  public balance: number
+  public balance: any
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

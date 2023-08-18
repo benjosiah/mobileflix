@@ -133,7 +133,7 @@ export default class SubscriptionsController {
             const res = await payment.cardPayment(payload, user.email)
             
             if(res.data.status == "success"){
-                wallet.balance = parseFloat(wallet.balance) + parseFloat(payload.amount)
+                wallet.balance = parseFloat(wallet.balance) + payload.amount
                 await wallet.save()
             }
             

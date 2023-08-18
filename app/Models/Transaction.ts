@@ -12,7 +12,7 @@ export default class Transaction extends BaseModel {
   public status: string
 
   @column()
-  public amount: number
+  public amount: any
 
   @column()
   public purpose: string
