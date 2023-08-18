@@ -26,12 +26,25 @@ Route.get('/', async () => {
 
 Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
+Route.post('/verify-payment', 'SubscriptionsController.verifyPayments')
+Route.get('/plans', 'SubscriptionsController.GetPlans')
+
 
 Route.group(()=>{
   Route.post('/accounts', 'AccountsController.add')
   Route.get('accounts', 'AccountsController.index')
   Route.get('/accounts/:id', 'AccountsController.show')
   Route.patch('/accounts/:id', 'AccountsController.edit')
+  
+  
+  Route.post('/subscribe', 'SubscriptionsController.subcribeTOPlan')
+  Route.get('/cards', 'SubscriptionsController.GetCard')
+  Route.post('add-card', 'SubscriptionsController.addCard')
+  Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
+  Route.get('/wallet', 'SubscriptionsController.GetWallet')
+ 
+
+
 
 }).prefix('users').middleware('auth')
 

@@ -1,6 +1,9 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany, HasMany} from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, column, hasMany, HasMany, HasOne, hasOne, belongsTo, BelongsTo} from '@ioc:Adonis/Lucid/Orm'
 import Account from './Account'
+import Wallet from './Wallet'
+import Subscription from './Subscription'
+import Plan from './Plan'
 
 export default class User extends BaseModel {
   @column({ isPrimary: true })
@@ -15,6 +18,12 @@ export default class User extends BaseModel {
   @column()
   public password: string
 
+  @column()
+  public is_subscribed: boolean
+
+  @column()
+  public plan_id: number
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 
@@ -22,6 +31,23 @@ export default class User extends BaseModel {
   public updatedAt: DateTime
 
   
-  @hasMany(() => Account)
+  @hasMany(() => Account, {
+    foreignKey: 'user_id',
+  })
   public accounts: HasMany<typeof Account>
+
+  @hasOne(() => Wallet, {
+    foreignKey: 'user_id',
+  })
+  public wallet: HasOne<typeof Wallet>
+
+  @hasOne(() => Subscription)
+  public subscription: HasOne<typeof Subscription>
+
+  @belongsTo(() => Plan, {
+    foreignKey: 'plan_id',
+  })
+  public plan: BelongsTo<typeof Plan>
 }
+
+

@@ -6,7 +6,9 @@ export default class extends BaseSchema {
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-
+      table.bigInteger('user_id')
+      table.bigInteger('plan_id')
+      table.timestamp('canceled_at')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
