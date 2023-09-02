@@ -60,6 +60,7 @@ export default class AuthController {
             .preload('accounts')
             .preload('wallet')
             .preload('plan')
+            .first()
 
          
     

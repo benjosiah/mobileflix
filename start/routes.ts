@@ -42,9 +42,19 @@ Route.group(()=>{
   Route.post('add-card', 'SubscriptionsController.addCard')
   Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
   Route.get('/wallet', 'SubscriptionsController.GetWallet')
+
+
+ 
+
  
 
 
 
 }).prefix('users').middleware('auth')
 
+Route.group(()=>{
+  Route.get('/', 'MoviesController.GetAllMovies')
+  Route.get('/series', 'MoviesController.GetAllShow')
+  Route.get('/clips', 'MoviesController.GetClips')
+  Route.get('/:id', 'MoviesController.GetMovie')
+}).prefix('movies')
