@@ -44,20 +44,20 @@ export default class ExceptionHandler extends HttpExceptionHandler {
 
 
 
-    else if(error.error.statusCode == 500){
-      if(process.env.NODE_ENV == "development"){
-        return ctx.response.status(500).json({
-          message: error.code,
-          errors: error,
-          status: "error",
-        })
-      }else{
-        return ctx.response.status(500).json({
-          message: "something went wrong",
-          status: "error",
-        })
-      }
-    }
+    // else if(error.error.statusCode == 500){
+    //   if(process.env.NODE_ENV == "development"){
+    //     return ctx.response.status(500).json({
+    //       message: error.code,
+    //       errors: error,
+    //       status: "error",
+    //     })
+    //   }else{
+    //     return ctx.response.status(500).json({
+    //       message: "something went wrong",
+    //       status: "error",
+    //     })
+    //   }
+    // }
     // }else{
     //   return ctx.response.status(500).json({
     //     message: error.code,
