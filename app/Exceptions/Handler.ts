@@ -57,13 +57,14 @@ export default class ExceptionHandler extends HttpExceptionHandler {
           status: "error",
         })
       }
-    }else{
-      return ctx.response.status(500).json({
-        message: error.code,
-        errors: error,
-        status: "error",
-      })
     }
+    // }else{
+    //   return ctx.response.status(500).json({
+    //     message: error.code,
+    //     errors: error,
+    //     status: "error",
+    //   })
+    // }
 
 
     /**
