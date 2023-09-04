@@ -1,5 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import CustomException from 'App/Exceptions/CustomException'
+// import CustomException from 'App/Exceptions/CustomException'
 import Movie from 'App/Models/Movie'
 import MovieClip from 'App/Models/MovieClip'
 import Season from 'App/Models/Season'
@@ -60,12 +60,12 @@ export default class MoviesController {
         const id = params.id
         let movie = await Movie.query().where('id', id).preload('clips').first()
         if(movie == null){
-            throw new CustomException('Movie was not found', 404)
+            return response.status(404).json({message: 'Movie was not found', status: "error"})
         }
         if(movie.is_series){
             const season = await Season.find(movie.season_id)
             if(season == null){
-                throw new CustomException('Movie was not found', 404)
+                return response.status(404).json({message: 'Movie was not found', status: "error"})
             }
              let series = await Series.query().where('id', season.series_id)
             .preload('season', (seasonsQuery) => {
@@ -79,7 +79,7 @@ export default class MoviesController {
             }).first()
 
             if(series == null){
-                throw new CustomException('Movie was not found', 404)
+                return response.status(404).json({message: 'Movie was not found', status: "error"})
             }
 
             return response.status(201).json({ message: 'Subscription Plans', status: "success", data: series })

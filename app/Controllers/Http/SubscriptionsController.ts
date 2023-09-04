@@ -4,7 +4,7 @@ import Plan from 'App/Models/Plan'
 import Subscription from 'App/Models/Subscription'
 import Wallet from 'App/Models/Wallet'
 import User from 'App/Models/User'
-import CustomException from 'App/Exceptions/CustomException'
+// import CustomException from 'App/Exceptions/CustomException'
 import PaymentService from 'App/Service/PaymentService'
 import Card from 'App/Models/Card'
 import Transaction from 'App/Models/Transaction'
@@ -20,7 +20,8 @@ export default class SubscriptionsController {
     public async GetCard({response, auth }: HttpContextContract) {
         const user = auth.user
         if(user == undefined){
-            throw new CustomException('UnAthorize User access, please login to continue', 401)
+
+            return response.status(401).json({message: 'UnAthorize User access, please login to continue', status: "error"})
         }
         const cards = await Card.query().where('user_id', user.id)
 
@@ -36,7 +37,8 @@ export default class SubscriptionsController {
     public async GetWallet({response, auth }: HttpContextContract) {
         const user = auth.user
         if(user == undefined){
-            throw new CustomException('UnAthorize User access, please login to continue', 401)
+            // throw new CustomException('UnAthorize User access, please login to continue', 401)
+            return response.status(401).json({message: 'UnAthorize User access, please login to continue', status: "error"})
         }
         const wallet = await Wallet.findBy('user_id', user.id)
         
@@ -62,20 +64,24 @@ export default class SubscriptionsController {
             
             
             if (user === null) {
-                throw new CustomException('User ID does not match any uuser', 404)
+                // throw new CustomException('User ID does not match any uuser', 404)
+                return response.status(422).json({message: 'User ID does not match any uuser', status: "error"})
             }
             if (plan === null) {
-                throw new CustomException('Plan ID does not match any subscription plan', 404)
+                // throw new CustomException('Plan ID does not match any subscription plan', 404)
+                return response.status(422).json({message: 'Plan ID does not match any subscription plan', status: "error"})
             }
 
             const wallet = await Wallet.findBy('user_id', user?.id)
             
             if (wallet === null) {
-                throw new CustomException('Plan ID does not match any subscription plan', 404)
+                // throw new CustomException('Plan ID does not match any subscription plan', 404)
+                return response.status(422).json({message: 'Plan ID does not match any subscription plan', status: "error"})
             }
 
             if(parseFloat(plan.price) > parseFloat(wallet.balance)){
-                throw new CustomException('Insufficient funds', 422)
+                // throw new CustomException('Insufficient funds', 422)
+                return response.status(422).json({message: 'Insufficient funds', status: "error"})
             }
 
 
@@ -118,11 +124,13 @@ export default class SubscriptionsController {
             const payload = await request.validate({ schema: walletSchema })
 
             if(user == undefined){
-                throw new CustomException('UnAthorize User access, please login to continue', 401)
+                // throw new CustomException('UnAthorize User access, please login to continue', 401)
+                return response.status(401).json({message: 'UnAthorize User access, please login to continue', status: "error"})
             }
     
             if (user.id !== payload.user_id ) {
-                throw new CustomException('User ID not the same as Authenticated User', 422)
+                // throw new CustomException('User ID not the same as Authenticated User', 422)
+                return response.status(422).json({message: 'User ID not the same as Authenticated User', status: "error"})
             }
             let wallet  =  await Wallet.findBy('user_id', user.id)
             if(wallet == null){
@@ -159,11 +167,13 @@ export default class SubscriptionsController {
         const user = auth.user
 
         if(user == undefined){
-            throw new CustomException('UnAthorize User access, please login to continue', 401)
+            // throw new CustomException('UnAthorize User access, please login to continue', 401)
+            return response.status(401).json({message: 'UnAthorize User access, please login to continue', status: "error"})
         }
 
         if (user.id !== payload.user_id ) {
-            throw new CustomException('User ID not the same as Authenticated User', 422)
+            // throw new CustomException('User ID not the same as Authenticated User', 422)
+            return response.status(422).json({message: 'User ID not the same as Authenticated User', status: "error"})
         }
 
         const payment = new PaymentService
