@@ -42,7 +42,9 @@ export default class ExceptionHandler extends HttpExceptionHandler {
       })
     }
 
-    else{
+
+
+    else if(error.errors.statusCode == 500){
       if(process.env.NODE_ENV == "development"){
         return ctx.response.status(500).json({
           message: error.code,
@@ -57,6 +59,11 @@ export default class ExceptionHandler extends HttpExceptionHandler {
       }
     }
 
+    return ctx.response.status(500).json({
+      message: error.code,
+      errors: error,
+      status: "error",
+    })
     /**
      * Forward rest of the exceptions to the parent class
      */

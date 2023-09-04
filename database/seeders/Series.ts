@@ -60,13 +60,13 @@ const video_object = {
   
     for(let show of series ){
       let x = 0
-      while(x<3){
+      while(x<2){
         const season = await SeasonFactory.merge({
           season_number: x+1 ,
           series_id: show.id
         }).create()
         let q = 0
-        while(q<5){
+        while(q<2){
             MoviesFactory.merge({
               vidio_object: JSON.stringify(video_object),
               is_series: true,
