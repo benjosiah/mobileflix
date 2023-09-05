@@ -7,24 +7,24 @@ import { SeriesFactory, SeasonFactory, MoviesFactory } from 'Database/factories'
 export default class extends BaseSeeder {
   public async run () {
     const video_clip = {
-      "videoId": "vi7g7xqPZUni7I0kzxPtzxua",
-      "createdAt": "2023-09-02T16:47:14.000Z",
+      "videoId": "vi3BpCrasH35ZmTYgY2UJexh",
+      "createdAt": "2023-09-05T10:16:03.000Z",
       "title": "Let's talk about Zuko and Azula's final fight... 🔥 _ Avatar #Shorts.mp4",
       "description": "",
-      "publishedAt": "2023-09-02T16:47:14.000Z",
-      "updatedAt": "2023-09-02T16:47:14.000Z",
+      "publishedAt": "2023-09-05T10:16:03.000Z",
+      "updatedAt": "2023-09-05T10:16:03.000Z",
       "tags": [],
       "metadata": [],
       "source": {
-        "uri": "/videos/vi7g7xqPZUni7I0kzxPtzxua/source",
+        "uri": "/videos/vi3BpCrasH35ZmTYgY2UJexh/source",
         "type": "upload"
       },
       "assets": {
-        "hls": "https://vod.api.video/vod/vi7g7xqPZUni7I0kzxPtzxua/hls/manifest.m3u8",
-        "iframe": "<iframe src=\"https://embed.api.video/vod/vi7g7xqPZUni7I0kzxPtzxua\" width=\"100%\" height=\"100%\" frameborder=\"0\" scrolling=\"no\" allowfullscreen=\"true\"></iframe>",
-        "player": "https://embed.api.video/vod/vi7g7xqPZUni7I0kzxPtzxua",
-        "thumbnail": "https://vod.api.video/vod/vi7g7xqPZUni7I0kzxPtzxua/thumbnail.jpg",
-        "mp4": "https://vod.api.video/vod/vi7g7xqPZUni7I0kzxPtzxua/mp4/source.mp4"
+        "hls": "https://vod.api.video/vod/vi3BpCrasH35ZmTYgY2UJexh/hls/manifest.m3u8",
+        "iframe": "<iframe src=\"https://embed.api.video/vod/vi3BpCrasH35ZmTYgY2UJexh\" width=\"100%\" height=\"100%\" frameborder=\"0\" scrolling=\"no\" allowfullscreen=\"true\"></iframe>",
+        "player": "https://embed.api.video/vod/vi3BpCrasH35ZmTYgY2UJexh",
+        "thumbnail": "https://vod.api.video/vod/vi3BpCrasH35ZmTYgY2UJexh/thumbnail.jpg",
+        "mp4": "https://vod.api.video/vod/vi3BpCrasH35ZmTYgY2UJexh/mp4/source.mp4"
       },
       "_public": true,
       "panoramic": false,
@@ -32,24 +32,24 @@ export default class extends BaseSeeder {
     }
 
 const video_object = {
-	"videoId": "vi22CnCzzkXSAJF80puMpasw",
-	"createdAt": "2023-09-02T16:26:59.000Z",
+	"videoId": "vi5196Q5a9nfKrmPdJClbtUk",
+	"createdAt": "2023-09-05T10:13:06.000Z",
 	"title": "Aang vs. Ozai 🔥 FULL UNCUT FINAL BATTLE _ Avatar.mp4",
 	"description": "",
-	"publishedAt": "2023-09-02T16:26:59.000Z",
-	"updatedAt": "2023-09-02T16:26:59.000Z",
+	"publishedAt": "2023-09-05T10:13:06.000Z",
+	"updatedAt": "2023-09-05T10:13:06.000Z",
 	"tags": [],
 	"metadata": [],
 	"source": {
-		"uri": "/videos/vi22CnCzzkXSAJF80puMpasw/source",
+		"uri": "/videos/vi5196Q5a9nfKrmPdJClbtUk/source",
 		"type": "upload"
 	},
 	"assets": {
-		"hls": "https://vod.api.video/vod/vi22CnCzzkXSAJF80puMpasw/hls/manifest.m3u8",
-		"iframe": "<iframe src=\"https://embed.api.video/vod/vi22CnCzzkXSAJF80puMpasw\" width=\"100%\" height=\"100%\" frameborder=\"0\" scrolling=\"no\" allowfullscreen=\"true\"></iframe>",
-		"player": "https://embed.api.video/vod/vi22CnCzzkXSAJF80puMpasw",
-		"thumbnail": "https://vod.api.video/vod/vi22CnCzzkXSAJF80puMpasw/thumbnail.jpg",
-		"mp4": "https://vod.api.video/vod/vi22CnCzzkXSAJF80puMpasw/mp4/source.mp4"
+		"hls": "https://vod.api.video/vod/vi5196Q5a9nfKrmPdJClbtUk/hls/manifest.m3u8",
+		"iframe": "<iframe src=\"https://embed.api.video/vod/vi5196Q5a9nfKrmPdJClbtUk\" width=\"100%\" height=\"100%\" frameborder=\"0\" scrolling=\"no\" allowfullscreen=\"true\"></iframe>",
+		"player": "https://embed.api.video/vod/vi5196Q5a9nfKrmPdJClbtUk",
+		"thumbnail": "https://vod.api.video/vod/vi5196Q5a9nfKrmPdJClbtUk/thumbnail.jpg",
+		"mp4": "https://vod.api.video/vod/vi5196Q5a9nfKrmPdJClbtUk/mp4/source.mp4"
 	},
 	"_public": true,
 	"panoramic": false,
