@@ -18,6 +18,8 @@ export default class MovieClip extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @belongsTo(() => Movie)
+  @belongsTo(() => Movie,{
+    foreignKey: 'movie_id',
+  })
   public movie: BelongsTo<typeof Movie>
 }
