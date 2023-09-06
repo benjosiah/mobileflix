@@ -100,6 +100,7 @@ export default class MoviesController {
         // Query the MovieClip model to get random records
         const movieClips = await MovieClip.query()
           .orderByRaw('RANDOM()')
+          .preload('movie')
           .paginate(page, perPage);
    
         
