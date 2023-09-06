@@ -14,7 +14,7 @@ export default class MoviesController {
     }
 
     public async GetAllMovies({response, request }: HttpContextContract) {
-        const moviesQuery = Movie.query().where('is_series', 0);
+        const moviesQuery = Movie.query().where('is_series', 0).preload('clips');
 
         // Specify the page number and number of items per page
         const page = request.input('page', 1); // Get the page number from the request or default to 1
