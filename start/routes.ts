@@ -26,6 +26,8 @@ Route.get('/', async () => {
 
 Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
+Route.post('/forgot-password', 'AuthController.forgotPassword')
+Route.post('/reset-password', 'AuthController.resetPasswordCallback')
 Route.post('/verify-payment', 'SubscriptionsController.verifyPayments')
 Route.get('/plans', 'SubscriptionsController.GetPlans')
 
@@ -35,8 +37,8 @@ Route.group(()=>{
   Route.get('accounts', 'AccountsController.index')
   Route.get('/accounts/:id', 'AccountsController.show')
   Route.patch('/accounts/:id', 'AccountsController.edit')
-  
-  
+
+
   Route.post('/subscribe', 'SubscriptionsController.subcribeTOPlan')
   Route.get('/cards', 'SubscriptionsController.GetCard')
   Route.post('add-card', 'SubscriptionsController.addCard')
@@ -44,9 +46,9 @@ Route.group(()=>{
   Route.get('/wallet', 'SubscriptionsController.GetWallet')
 
 
- 
 
- 
+
+
 
 
 
