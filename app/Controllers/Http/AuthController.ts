@@ -178,8 +178,12 @@ export default class AuthController {
 
 		}
 
+		return await view.render('general/redirect', {
+			url: `${redirect_url.split("?")[0]}?token=${reset_token}&email=${checkResetToken?.email}`
+		})
 
-		response.status(302).redirect().toPath(`${redirect_url.split("?")[0]}?token=${reset_token}&email=${checkResetToken?.email}`)
+
+		//response.status(302).redirect().toPath(`${redirect_url.split("?")[0]}?token=${reset_token}&email=${checkResetToken?.email}`)
 
 	}
 
