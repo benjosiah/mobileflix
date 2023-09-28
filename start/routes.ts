@@ -19,10 +19,23 @@
 */
 
 import Route from '@ioc:Adonis/Core/Route'
+import AutoSwagger from "adonis-autoswagger";
+import swagger from "Config/swagger";
 
 Route.get('/', async () => {
   return { hello: 'world' }
 })
+
+// returns swagger in YAML
+/*Route.get("/swagger", async () => {
+	// @ts-ignore
+	return AutoSwagger.docs(Route.toJSON(), swagger);
+});
+
+// Renders Swagger-UI and passes YAML-output of /swagger
+Route.get("/docs", async () => {
+	return AutoSwagger.ui("/swagger");
+});*/
 
 Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
@@ -39,11 +52,12 @@ Route.group(()=>{
   Route.patch('/accounts/:id', 'AccountsController.edit')
 
 
-  Route.post('/subscribe', 'SubscriptionsController.subcribeTOPlan')
+  Route.post('/subscribe', 'SubscriptionsController.subscribeToPlan')
   Route.get('/cards', 'SubscriptionsController.GetCard')
   Route.post('add-card', 'SubscriptionsController.addCard')
   Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
   Route.get('/wallet', 'SubscriptionsController.GetWallet')
+  Route.get('/transactions', 'SubscriptionsController.GetTransactions')
 
 
 
