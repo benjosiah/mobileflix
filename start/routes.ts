@@ -19,8 +19,8 @@
 */
 
 import Route from '@ioc:Adonis/Core/Route'
-import AutoSwagger from "adonis-autoswagger";
-import swagger from "Config/swagger";
+/*import AutoSwagger from "adonis-autoswagger";
+import swagger from "Config/swagger";*/
 
 Route.get('/', async () => {
   return { hello: 'world' }
@@ -40,7 +40,9 @@ Route.get("/docs", async () => {
 Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
 Route.post('/forgot-password', 'AuthController.forgotPassword')
-Route.post('/reset-password', 'AuthController.resetPasswordCallback')
+Route.post('/reset-password', 'AuthController.resetPassword')
+Route.get('/verify-reset-token', 'AuthController.verifyResetTokenCallback')
+
 Route.post('/verify-payment', 'SubscriptionsController.verifyPayments')
 Route.get('/plans', 'SubscriptionsController.GetPlans')
 
