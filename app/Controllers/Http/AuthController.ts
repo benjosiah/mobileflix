@@ -8,6 +8,7 @@ import Wallet from 'App/Models/Wallet'
 import * as crypto from "crypto";
 import Mail from '@ioc:Adonis/Addons/Mail'
 import {DateTime} from "luxon";
+import Env from '@ioc:Adonis/Core/Env'
 
 
 export default class AuthController {
@@ -20,6 +21,7 @@ export default class AuthController {
 			email: schema.string([
 				rules.email(),
 				rules.required(),
+				// @ts-ignore
 				rules.unique({table: 'users', column: 'email'})
 			]),
 			password: schema.string([
@@ -116,7 +118,7 @@ export default class AuthController {
 
 		await token.save()
 
-		const callbackUrl = `${redirect_url.split("?")[0]}?token=${resetToken}&email=${payload.email}`
+		const callbackUrl = `${Env.get('API_URL')}/verify-reset-token?token=${resetToken}&redirect_url=${redirect_url}`
 
 
 		const result = await Mail.send((message) => {
@@ -153,7 +155,35 @@ export default class AuthController {
 
 	}
 
-	public async resetPasswordCallback({request, response}: HttpContextContract) {
+	public async verifyResetTokenCallback({request, response, view}: HttpContextContract) {
+
+
+		const reset_token = request.qs()?.token
+		const redirect_url = request.qs()?.redirect_url
+
+		if (!reset_token) return response.status(400).json({
+			message: 'Reset token is required',
+			status: 'error'
+		})
+
+		const checkResetToken = await ResetToken.query().where('token', reset_token).first()
+
+
+		if (!checkResetToken || new Date() > new Date(checkResetToken?.expiresAt.toString())) {
+
+			return await view.render('general/password-reset-failed', {
+				reason: 'Invalid or expired reset token.',
+				advice: 'Please try requesting  password reset again',
+			})
+
+		}
+
+
+		response.status(302).redirect().toPath(`${redirect_url.split("?")[0]}?token=${reset_token}&email=${checkResetToken?.email}`)
+
+	}
+
+	public async resetPassword({request, response}: HttpContextContract) {
 		const validateSchema = schema.create({
 			new_password: schema.string([
 				rules.required(),
