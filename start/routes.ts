@@ -39,11 +39,12 @@ Route.group(()=>{
   Route.patch('/accounts/:id', 'AccountsController.edit')
 
 
-  Route.post('/subscribe', 'SubscriptionsController.subcribeTOPlan')
+  Route.post('/subscribe', 'SubscriptionsController.subscribeToPlan')
   Route.get('/cards', 'SubscriptionsController.GetCard')
   Route.post('add-card', 'SubscriptionsController.addCard')
   Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
   Route.get('/wallet', 'SubscriptionsController.GetWallet')
+  Route.get('/transactions', 'SubscriptionsController.GetTransactions')
 
 
 
