@@ -88,11 +88,18 @@ export default class AuthController {
 		})
 
 		const redirect_url = request.qs()?.redirect_url
+		const method: "otp" | "token" = request.qs()?.type?.toLowerCase() ?? 'otp'
 
-		if (!redirect_url) return response.status(400).json({
+		if (method !== 'otp' && method !== 'token') return response.status(400).json({
+			message: 'Method value can only be "otp" or "token"',
+			status: 'error'
+		})
+
+		if (method === 'token' && !redirect_url) return response.status(400).json({
 			message: 'Redirect url is required',
 			status: 'error'
 		})
+
 
 		const payload = await request.validate({schema: validateSchema})
 
@@ -109,49 +116,129 @@ export default class AuthController {
 			await existingToken.delete()
 		}
 
-		const resetToken = crypto.randomBytes(32).toString("hex")
 
-		const token = new ResetToken()
-		token.email = payload.email
-		token.token = resetToken
-		token.expiresAt = DateTime.now().plus({hours: 2})
+		if (method === 'otp') {
+			const resetOTP = Math.floor(Math.random() * 10000).toString()
 
-		await token.save()
+			const token = new ResetToken()
+			token.email = payload.email
+			token.token = resetOTP
+			token.expiresAt = DateTime.now().plus({minutes: 15})
 
-		const callbackUrl = `${Env.get('API_URL')}/verify-reset-token?token=${resetToken}&redirect_url=${redirect_url}`
+			await token.save()
 
+			const result = await Mail.send((message) => {
+				message
+					.from('noreply@cinemoapp.com', 'Cinemo')
+					.to(payload?.email)
+					.subject('Cinemo Password Reset Request')
+					.text(`
+					Hello ${user?.name},
+					You recently requested to reset your password for your Cinemo account.
+					Your OTP is: ${resetOTP},
+					This OTP is only valid for the next 15 minutes. If you did not request a password reset, please ignore this email.
+					Thanks, Cinemo Team.
+				`)
+					.htmlView('emails/reset_password_otp', {
+						name: user?.name,
+						otp: resetOTP,
+					})
+			})
 
-		const result = await Mail.send((message) => {
-			message
-				.from('noreply@cinemoapp.com', 'Cinemo')
-				.to(payload?.email)
-				.subject('Cinemo Password Reset Request')
-				.text(`
+			if (result) {
+				return response.json({
+					message: 'Reset password link has been sent to provided email',
+					status: 'success'
+				})
+			}
+			else {
+				return response.status(500).json({
+					message: 'An error occurred while sending reset password link to provided email',
+					status: 'error'
+				})
+			}
+		}
+		else if (method === 'token') {
+			const resetToken = crypto.randomBytes(32).toString("hex")
+
+			const token = new ResetToken()
+			token.email = payload.email
+			token.token = resetToken
+			token.expiresAt = DateTime.now().plus({hours: 2})
+
+			await token.save()
+
+			const callbackUrl = `${Env.get('API_URL')}/verify-reset-token?token=${resetToken}&redirect_url=${redirect_url}`
+
+			const result = await Mail.send((message) => {
+				message
+					.from('noreply@cinemoapp.com', 'Cinemo')
+					.to(payload?.email)
+					.subject('Cinemo Password Reset Request')
+					.text(`
 					Hello ${user?.name},
 					You recently requested to reset your password for your Cinemo account. Use the link below to reset it.
 					Link: ${callbackUrl},
 					This password reset is only valid for the next 24 hours. If you did not request a password reset, please ignore this email.
 					Thanks, Cinemo Team.
 				`)
-				.htmlView('emails/reset_password', {
-					name: user?.name,
-					action_url: callbackUrl,
+					.htmlView('emails/reset_password_token', {
+						name: user?.name,
+						action_url: callbackUrl,
+					})
+			})
+
+			if (result) {
+				return response.json({
+					message: 'Reset password link has been sent to provided email',
+					status: 'success'
 				})
+			}
+			else {
+				return response.status(500).json({
+					message: 'An error occurred while sending reset password link to provided email',
+					status: 'error'
+				})
+			}
+		}
+
+
+
+	}
+
+	public async verifyResetOTP({request, response}: HttpContextContract) {
+
+		const validateSchema = schema.create({
+			email: schema.string([
+				rules.email(),
+				rules.required(),
+			]),
+			otp: schema.string([
+				rules.required(),
+				rules.maxLength(4)
+			]),
 		})
 
-		if (result) {
-			return response.json({
-				message: 'Reset password link has been sent to provided email',
-				status: 'success'
-			})
-		}
-		else {
-			return response.status(500).json({
-				message: 'An error occurred while sending reset password link to provided email',
+		const payload = await request.validate({schema: validateSchema})
+
+
+
+		const checkOTP = await ResetToken.query().where('token', payload?.otp).first()
+
+
+		if (!checkOTP || new Date() > new Date(checkOTP?.expiresAt.toString()) || checkOTP?.email !== payload?.email) {
+
+			return response.status(403).json({
+				message: 'Invalid or expired reset OTP.',
 				status: 'error'
 			})
+
 		}
 
+		return response.status(200).json({
+			message: 'OTP confirmed successfully',
+			status: 'success'
+		})
 
 	}
 
@@ -199,10 +286,10 @@ export default class AuthController {
 			]),
 		})
 
-		const reset_token = request.qs()?.token
+		const reset_token = request.qs()?.token ?? request.qs()?.otp
 
 		if (!reset_token) return response.status(400).json({
-			message: 'Reset token is required',
+			message: 'Reset token/OTP is required',
 			status: 'error'
 		})
 
@@ -213,7 +300,7 @@ export default class AuthController {
 
 
 		if (!checkResetRequest || checkResetRequest.token !== reset_token || new Date() > new Date(checkResetRequest?.expiresAt.toString())  ) return response.status(403).json({
-			message: 'Password reset rejected: Invalid or expired password reset token',
+			message: 'Password reset rejected: Invalid or expired password reset token/OTP',
 			status: 'error'
 		})
 
