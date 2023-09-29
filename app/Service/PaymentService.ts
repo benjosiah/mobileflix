@@ -13,7 +13,7 @@ export default class PaymentService {
             currency: "NGN",
             reference: ref,
             channel: "card"
-        
+
         }
         const res = await PaystackAxios.post('/transaction/initialize', body)
 
@@ -36,7 +36,18 @@ export default class PaymentService {
         if(card == null){
             return
         }
-        const auth_token = JSON.parse(card.details).authorization_code
+        let auth_token = null
+
+
+		try {
+			auth_token = JSON.parse(card.details).authorization_code
+		} catch (error) {
+			// @ts-ignore
+			auth_token = card.details.authorization_code
+		}
+
+
+
         // return auth_token
         const body = {
             email: email,
@@ -44,7 +55,7 @@ export default class PaymentService {
             authorization_code: auth_token,
             currency: "NGN",
             reference: ref,
-        
+
         }
 
         const res = await PaystackAxios.post('/transaction/charge_authorization', body)
@@ -70,10 +81,10 @@ export default class PaymentService {
         const currentDate = new Date();
         const timestamp = currentDate.getTime();
         const randomPart = Math.floor(Math.random() * 10000); // Generate a random number between 0 and 9999
-        
+
         const referenceNumber = `REF-${timestamp}-${randomPart}`;
         return referenceNumber;
-    }
-      
-    
+      }
+
+
 }

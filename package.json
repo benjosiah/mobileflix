@@ -6,6 +6,7 @@
     "dev": "node ace serve --watch",
     "build": "node ace build --production --ignore-ts-errors",
     "start": "node build/server.js",
+    "seed-db": "node ace db:seed -i",
     "test": "node ace test",
     "migration:run": "node ace migration:run"
   },
@@ -26,7 +27,10 @@
     "@adonisjs/core": "^5.9.0",
     "@adonisjs/generic-exceptions": "^3.0.1",
     "@adonisjs/lucid": "^18.4.0",
+    "@adonisjs/mail": "^8.2.1",
     "@adonisjs/repl": "^3.1.11",
+    "@adonisjs/view": "^6.2.0",
+    "adonis-autoswagger": "^1.8.1",
     "axios": "^1.4.0",
     "luxon": "^3.3.0",
     "mysql2": "^3.5.1",
