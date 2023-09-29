@@ -43,13 +43,6 @@ Route.group(()=>{
   Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
   Route.get('/wallet', 'SubscriptionsController.GetWallet')
 
-
- 
-
- 
-
-
-
 }).prefix('users').middleware('auth')
 
 Route.group(()=>{

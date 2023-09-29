@@ -10,6 +10,7 @@
 */
 
 import Server from '@ioc:Adonis/Core/Server'
+// import Cors from '@ioc:Adonis/Middleware/Cors'
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +23,7 @@ import Server from '@ioc:Adonis/Core/Server'
 */
 Server.middleware.register([
   () => import('@ioc:Adonis/Core/BodyParser'),
+  // Cors
 ])
 
 /*

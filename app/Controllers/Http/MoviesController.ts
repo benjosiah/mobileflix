@@ -17,7 +17,7 @@ export default class MoviesController {
         const moviesQuery = Movie.query().where('is_series', 0).preload('clips');
 
         // Specify the page number and number of items per page
-        const page = request.input('page', 1); // Get the page number from the request or default to 1
+        const page = request.input('page', 1); 
         const perPage = 10; // Number of items per page
 
         // Paginate the records
@@ -29,8 +29,8 @@ export default class MoviesController {
     }
 
     public async GetAllShow({response, request }: HttpContextContract) {
-        const page = request.input('page', 1); // Get the page number from the request or default to 1
-        const perPage = 10; // Number of items per page
+        const page = request.input('page', 1); 
+        const perPage = 10; 
         
         const series = await Series.query()
         .preload('season', (season)=>{
