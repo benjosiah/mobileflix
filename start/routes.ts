@@ -41,7 +41,9 @@ Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
 Route.post('/forgot-password', 'AuthController.forgotPassword')
 Route.post('/reset-password', 'AuthController.resetPassword')
+Route.post('/verify-reset-otp', 'AuthController.verifyResetOTP')
 Route.get('/verify-reset-token', 'AuthController.verifyResetTokenCallback')
+
 
 Route.post('/verify-payment', 'SubscriptionsController.verifyPayments')
 Route.get('/plans', 'SubscriptionsController.GetPlans')
