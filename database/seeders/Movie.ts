@@ -1,5 +1,5 @@
 import BaseSeeder from '@ioc:Adonis/Lucid/Seeder'
-import { MoviesFactory } from 'Database/factories'
+import { MoviesFactory, CastFactory } from 'Database/factories'
 // import MovieClip from 'App/Models/MovieClip'
 
 export default class extends BaseSeeder {
@@ -63,6 +63,9 @@ const video_object = {
       vidio_object: JSON.stringify(video_object)
     })
     .createMany(10)
+
+    await CastFactory.createMany(50)
+
   }
 
   

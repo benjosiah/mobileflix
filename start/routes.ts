@@ -76,3 +76,10 @@ Route.group(()=>{
   Route.get('/clips', 'MoviesController.GetClips')
   Route.get('/:id', 'MoviesController.GetMovie')
 }).prefix('movies')
+
+Route.group(()=>{
+  Route.group(()=>{
+    
+  })
+}).prefix('admin')
+

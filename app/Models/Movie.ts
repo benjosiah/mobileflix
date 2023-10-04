@@ -15,13 +15,13 @@ export default class Movie extends BaseModel {
   public plot: string
 
   @column()
-  public cast: string
+  public cast: any
 
   @column()
   public tags: string
 
   @column()
-  public vidio_object: string
+  public vidio_object: any
 
   @column()
   public is_series: boolean
@@ -48,4 +48,6 @@ export default class Movie extends BaseModel {
 
   @belongsTo(() => Season)
   public season: BelongsTo<typeof Season>
+
+  public casts: any
 }

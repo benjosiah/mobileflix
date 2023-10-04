@@ -3,14 +3,15 @@ import Movie from 'App/Models/Movie'
 import MovieClip from 'App/Models/MovieClip'
 import Season from 'App/Models/Season'
 import Series from 'App/Models/Series'
+import Cast from 'App/Models/Cast'
 
-
+const cast = [1,3,5,6,6]
 export const MoviesFactory = Factory
   .define(Movie, ({ faker }) => {
     return {
       title: faker.lorem.sentence(),
       plot: faker.lorem.paragraph(),
-      cast: faker.lorem.words(),
+      cast: JSON.stringify(cast),
       tags: faker.lorem.words(),
     }
   })
@@ -42,6 +43,16 @@ export const MoviesFactory = Factory
   .define(MovieClip, ({ faker }) => {
     return {
         vidio_object: faker.lorem.sentences()
+    }
+  })
+  .build()
+
+  export const CastFactory = Factory
+  .define(Cast, ({ faker }) => {
+    return {
+      name: faker.lorem.words(2),
+      image: "https://www.rwlasvegas.com/wp-content/uploads/2022/09/Kevin-Hart-Reality-Check-Press-Headshot.jpeg"
+      
     }
   })
   .build()
