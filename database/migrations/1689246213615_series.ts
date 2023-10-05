@@ -10,6 +10,7 @@ export default class extends BaseSchema {
       table.text('plot').nullable()
       table.string('cast').nullable()
       table.string('tags').nullable()
+      table.string('genres').nullable()
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })

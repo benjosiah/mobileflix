@@ -18,6 +18,9 @@ export default class Series extends BaseModel {
   @column()
   public tags: string
 
+  @column()
+  public genres: string
+
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
 

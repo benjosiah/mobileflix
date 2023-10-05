@@ -53,6 +53,9 @@ const video_object = {
 	"panoramic": false,
 	"mp4Support": true
 }
+
+    await CastFactory.createMany(10)
+
     await MoviesFactory
     .with('clips', 2, (clips)=>{
       clips.merge({
@@ -64,7 +67,6 @@ const video_object = {
     })
     .createMany(10)
 
-    await CastFactory.createMany(50)
 
   }
 

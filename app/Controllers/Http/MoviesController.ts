@@ -11,12 +11,18 @@ export default class MoviesController {
     public async GetAllMoviesAndSeries({response }: HttpContextContract) {
         const plans = await Movie.all()
 
-        return response.status(201).json({ message: 'Subscription Plans', status: "success", data: plans })
+        return response.status(201).json({ message: '', status: "success", data: plans })
         
     }
 
     public async GetAllMovies({response, request }: HttpContextContract) {
-        const moviesQuery = Movie.query().where('is_series', 0).preload('clips');
+        const moviesQuery = Movie.query().where('is_series', 0)
+                                 .preload('clips')
+                                 .preload('cast1')
+                                 .preload('cast2')
+                                 .preload('cast3')
+                                 .preload('cast4')
+                                 .preload('cast5')
 
         // Specify the page number and number of items per page
         const page = request.input('page', 1); 
@@ -26,7 +32,7 @@ export default class MoviesController {
         const movies = await moviesQuery.paginate(page, perPage);
 
 
-        return response.status(201).json({ message: 'Subscription Plans', status: "success", data: movies })
+        return response.status(201).json({ message: 'Movies', status: "success", data: movies })
         
     }
 
@@ -44,23 +50,24 @@ export default class MoviesController {
                 });
             });
         })
-        //   .with('seasons', (seasonsQuery) => {
-        //     seasonsQuery.orderBy('season_number', 'asc'); // Sort seasons by season_number
-        //     seasonsQuery.with('movies', (moviesQuery) => {
-        //       moviesQuery.orderBy('episode', 'asc'); // Sort movies by episode
-        //     });
-        //   })
           .paginate(page, perPage);
         
 
 
-        return response.status(201).json({ message: 'Subscription Plans', status: "success", data: series })
+        return response.status(201).json({ message: 'Series', status: "success", data: series })
         
     }
 
     public async GetMovie({response, params }: HttpContextContract) {
         const id = params.id
-        let movie = await Movie.query().where('id', id).preload('clips').first()
+        let movie = await Movie.query().where('id', id)
+                                .preload('clips')
+                                .preload('cast1')
+                                .preload('cast2')
+                                .preload('cast3')
+                                .preload('cast4')
+                                .preload('cast5')
+                                .first()
         if(movie == null){
             return response.status(404).json({message: 'Movie was not found', status: "error"})
         }
@@ -76,7 +83,11 @@ export default class MoviesController {
                     moviesQuery.orderBy('episode', 'asc');
                     moviesQuery.preload('clips', (clipQuery)=>{
                         clipQuery.orderBy('id', 'asc');
-                    });
+                    }).preload('cast1')
+                    .preload('cast2')
+                    .preload('cast3')
+                    .preload('cast4')
+                    .preload('cast5')
                 })
             }).first()
 
@@ -84,26 +95,11 @@ export default class MoviesController {
                 return response.status(404).json({message: 'Movie was not found', status: "error"})
             }
 
-            return response.status(201).json({ message: 'Subscription Plans', status: "success", data: series })
-        }
-   
-        
-        let casts = Array()
-        movie.casts  = JSON.parse(movie.cast)
-        
-        for(let x =0; x < movie.casts.length; x++){
-            let cast: Cast | null = await Cast.find(movie.casts[x])
-            if(cast !== null){
-                
-                // let item = JSON.stringify(cast)
-                casts.push(cast)
-            }  
+            return response.status(201).json({ message: 'Series', status: "success", data: series })
         }
 
-        movie.cast = casts
 
-
-        return response.status(201).json({ message: 'Subscription Plans', status: "success", data: movie })
+        return response.status(201).json({ message: 'Mobie', status: "success", data: movie })
         
     }
 
@@ -113,15 +109,21 @@ export default class MoviesController {
     
         // Query the MovieClip model to get random records
         const movieClips = await MovieClip.query()
-          .orderByRaw('RANDOM()')
-          .preload('movie')
+          .orderByRaw('RAND()')
+          .preload('movie', (moviesQuery) => {
+            moviesQuery.preload('cast1')
+            .preload('cast2')
+            .preload('cast3')
+            .preload('cast4')
+            .preload('cast5')
+          })
           .paginate(page, perPage);
    
         
         
 
 
-        return response.status(201).json({ message: 'Subscription Plans', status: "success", data: movieClips })
+        return response.status(201).json({ message: 'Mobie Clips', status: "success", data: movieClips })
         
     }
 
@@ -130,7 +132,7 @@ export default class MoviesController {
         // Query the MovieClip model to get random records
         const casts = await Cast.all()
 
-        return response.status(201).json({ message: 'Subscription Plans', status: "success", data: casts })
+        return response.status(201).json({ message: 'Casts', status: "success", data: casts })
     }
 
     public async saveCasts({response, request }: HttpContextContract){
@@ -161,9 +163,24 @@ export default class MoviesController {
             plot: schema.string([
                 rules.required()
             ]),
-            casts: schema.string([
+            cast1_id: schema.number([
                 rules.required()
             ]),
+  
+            cast2_id: schema.number([
+                rules.required()
+            ]),
+            cast3_id: schema.number([
+                rules.required()
+            ]),
+            cast4_id: schema.number([
+                rules.required()
+            ]),
+            cast5_id: schema.number([
+                rules.required()
+            ]),
+
+
             video_object: schema.string([
                 rules.required()
             ]),
@@ -178,7 +195,11 @@ export default class MoviesController {
         const movie = new Movie()
         movie.title = payload.title
         movie.plot = payload.plot
-        movie.cast = payload.casts
+        movie.cast1_id = payload.cast1_id
+        movie.cast2_id = payload.cast2_id
+        movie.cast3_id = payload.cast3_id
+        movie.cast4_id = payload.cast4_id
+        movie.cast5_id = payload.cast5_id
         movie.tags = payload.tags
         movie.vidio_object = payload.video_object
         await movie.save()

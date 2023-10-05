@@ -5,14 +5,18 @@ import Season from 'App/Models/Season'
 import Series from 'App/Models/Series'
 import Cast from 'App/Models/Cast'
 
-const cast = [1,3,5,6,6]
 export const MoviesFactory = Factory
   .define(Movie, ({ faker }) => {
     return {
       title: faker.lorem.sentence(),
       plot: faker.lorem.paragraph(),
-      cast: JSON.stringify(cast),
-      tags: faker.lorem.words(),
+      cast1_id: 2,
+      cast2_id: 1,
+      cast3_id: 4,
+      cast4_id: 6,
+      cast5_id: 8,
+      tags: "80s, old-school, romance, teens",
+      genres: "comedy, romance"
     }
   })
   .relation('clips', () => ClipFactory) 
@@ -24,7 +28,9 @@ export const MoviesFactory = Factory
       title: faker.lorem.sentence(),
       plot: faker.lorem.paragraph(),
       cast: faker.lorem.words(),
-      tags: faker.lorem.words()
+      tags: "80s, old-school, romance, teens",
+      genres: "comedy, romance"
+
     }
   })
   .relation('season', () => SeasonFactory) 
