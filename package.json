@@ -2,6 +2,9 @@
 	"name": "mobile-flix",
 	"version": "1.0.0",
 	"private": true,
+	"engines": {
+		"node": "18.x"
+	},
 	"scripts": {
 		"dev": "node ace serve --watch",
 		"build": "node ace build --production --ignore-ts-errors",
