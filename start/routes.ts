@@ -58,7 +58,8 @@ Route.group(()=>{
 
   Route.post('/subscribe', 'SubscriptionsController.subscribeToPlan')
   Route.get('/cards', 'SubscriptionsController.GetCard')
-  Route.post('add-card', 'SubscriptionsController.addCard')
+  Route.post('/add-card', 'SubscriptionsController.addCard')
+  Route.post('/remove-card', 'SubscriptionsController.removeCard')
   Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
   Route.get('/wallet', 'SubscriptionsController.GetWallet')
   Route.get('/transactions', 'SubscriptionsController.GetTransactions')
@@ -81,7 +82,7 @@ Route.group(()=>{
 
 Route.group(()=>{
   Route.group(()=>{
-    
+
   })
 }).prefix('admin')
 
