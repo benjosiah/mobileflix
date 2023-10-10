@@ -34,7 +34,7 @@ export default class SubscriptionsController {
 			try {
 				card.details = JSON.parse(card.details)
 			} catch (e) {
-				console.log("Error parsing cards value, using as is:", e)
+				//console.log("Error parsing cards value, using as is:", e)
 			}
 
 		});
@@ -175,9 +175,7 @@ export default class SubscriptionsController {
 
 	public async addCard({request, response, auth}: HttpContextContract) {
 		const CardSchema = schema.create({
-			/*amount: schema.number([
-				rules.required()
-			]),*/
+			charge_amount: schema.number([]),
 			user_id: schema.number([
 				rules.required()
 			]),
@@ -205,9 +203,48 @@ export default class SubscriptionsController {
 		}
 
 		const payment = new PaymentService
-		const res = await payment.initiatePayment({...payload, amount: 100}, user.email)
+		const res = await payment.initiatePayment({...payload, amount: payload.charge_amount || 100}, user.email)
 
-		return response.status(201).json({message: 'Wallet topUp Successfully', status: "success", data: res})
+		return response.status(201).json({message: 'Card added Successfully', status: "success", data: res})
+	}
+
+	public async removeCard({request, response, auth}: HttpContextContract) {
+		const Schema = schema.create({
+			user_id: schema.number([
+				rules.required()
+			]),
+		})
+
+		const payload = await request.validate({schema: Schema})
+
+
+		const user = auth.user
+		if (user === undefined) {
+
+			return response.status(401).json({
+				message: 'Unauthorized User access, please login to continue',
+				status: "error"
+			})
+		}
+
+
+		if (user.id !== payload.user_id) {
+			return response.status(403).json({
+				message: 'Unauthorized action, provided user does not match authenticated user',
+				status: "error"
+			})
+		}
+
+
+
+		const cards = await Card.query().where('user_id', user.id)
+		for (const card of cards) {
+			await card.delete()
+		}
+
+		return response.status(201).json({message: 'Cards removed Successfully', status: "success"})
+
+
 	}
 
 	public async verifyPayments({request, response}: HttpContextContract) {
@@ -233,10 +270,19 @@ export default class SubscriptionsController {
 		if (body.data.status == "success") {
 			// return "bbb"
 			if (body.data.channel === "card") {
-				const card = new Card
-				card.user_id = transaction.user_id
-				card.details = JSON.stringify(body.data.authorization)
-				await card.save()
+
+				//logic to overwrite card details
+				const card = await Card.findBy('user_id', transaction.user_id)
+				if (card) {
+					card.details = JSON.stringify(body.data.authorization)
+					await card.save()
+				} else {
+					const card = new Card
+					card.user_id = transaction.user_id
+					card.details = JSON.stringify(body.data.authorization)
+					await card.save()
+				}
+
 			}
 
 			wallet.balance = parseFloat(wallet.balance) + parseFloat(transaction.amount)
