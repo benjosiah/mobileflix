@@ -109,7 +109,7 @@ export default class MoviesController {
     
         // Query the MovieClip model to get random records
         const movieClips = await MovieClip.query()
-          .orderByRaw('RAND()')
+          .orderByRaw('RANDOM()')
           .preload('movie', (moviesQuery) => {
             moviesQuery.preload('cast1')
             .preload('cast2')
