@@ -7,7 +7,7 @@ export default class MovieClip extends BaseModel {
   public id: number
 
   @column()
-  public vidio_object: any
+  public video_object: any
 
   @column()
   public movie_id: number

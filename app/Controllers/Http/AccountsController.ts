@@ -6,7 +6,7 @@ import { schema, rules } from '@ioc:Adonis/Core/Validator'
 
 export default class AccountsController {
     public async add({ auth, request, response }: HttpContextContract) {
-  
+
         const userSchema = schema.create({
             name: schema.string([
                 rules.required()
@@ -22,16 +22,16 @@ export default class AccountsController {
         account.name = payload.name
         account.user_id = user_id
         await account.save()
-    
+
         return response.status(201).json({ message: 'Account Added Successfully', status: "success" })
 
 
     }
 
     public async index({auth, response }: HttpContextContract) {
-     
+
             const user_id = auth.user?.id
-            
+
             if (user_id == null) {
                 return
             }
@@ -42,21 +42,20 @@ export default class AccountsController {
     }
 
     public async show({response, params }: HttpContextContract) {
-       
+
             const id = params.id
             const account = await Account.find(id)
             if (account== null) {
                 throw new HttpException('Account not found', 404);
             }
             return response.status(201).json({message: "Account Record", data: account, status: "success"})
- 
 
-     
+
 
     }
 
     public async edit({request, response, params }: HttpContextContract) {
-        
+
             const userSchema = schema.create({
                 name: schema.string([
                   rules.required()
@@ -65,7 +64,7 @@ export default class AccountsController {
 
               const payload = await request.validate({ schema: userSchema })
             const id = params.id
-        
+
             const account = await Account.find(id)
             if (account== null) {
                 throw new HttpException('Account not found', 404);
@@ -75,7 +74,7 @@ export default class AccountsController {
 
             return response.status(201).json({ message: 'Account Updated Successfully', data: account, status: "success" })
 
-  
+
     }
-    
+
 }

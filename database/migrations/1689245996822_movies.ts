@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.string('title')
-      table.json('vidio_object')
+      table.json('video_object')
       table.text('plot').nullable()
       table.integer('cast1_id')
       table.integer('cast2_id')

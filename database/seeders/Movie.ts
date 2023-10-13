@@ -59,16 +59,16 @@ const video_object = {
     await MoviesFactory
     .with('clips', 2, (clips)=>{
       clips.merge({
-        vidio_object: JSON.stringify(video_clip)
+        video_object: JSON.stringify(video_clip)
       })
     })
     .merge({
-      vidio_object: JSON.stringify(video_object)
+      video_object: JSON.stringify(video_object)
     })
     .createMany(10)
 
 
   }
 
-  
+
 }

@@ -23,7 +23,7 @@ import Route from '@ioc:Adonis/Core/Route'
 import swagger from "Config/swagger";*/
 
 Route.get('/', async () => {
-  return { hello: 'world' }
+	return {hello: 'world'}
 })
 
 // returns swagger in YAML
@@ -44,45 +44,39 @@ Route.post('/reset-password', 'AuthController.resetPassword')
 Route.post('/verify-reset-otp', 'AuthController.verifyResetOTP')
 Route.get('/verify-reset-token', 'AuthController.verifyResetTokenCallback')
 
-
-Route.post('/verify-payment', 'SubscriptionsController.verifyPayments')
+Route.post('/verify-payment', 'SubscriptionsController.verifyPayments') //paystack webhook
 Route.get('/plans', 'SubscriptionsController.GetPlans')
 
 
-Route.group(()=>{
-  Route.post('/accounts', 'AccountsController.add')
-  Route.get('accounts', 'AccountsController.index')
-  Route.get('/accounts/:id', 'AccountsController.show')
-  Route.patch('/accounts/:id', 'AccountsController.edit')
+Route.group(() => {
+	Route.post('/accounts', 'AccountsController.add')
+	Route.get('accounts', 'AccountsController.index')
+	Route.get('/accounts/:id', 'AccountsController.show')
+	Route.patch('/accounts/:id', 'AccountsController.edit')
+	Route.get('/me', 'AuthController.GetUserInfo')
 
 
-  Route.post('/subscribe', 'SubscriptionsController.subscribeToPlan')
-  Route.get('/cards', 'SubscriptionsController.GetCard')
-  Route.post('/add-card', 'SubscriptionsController.addCard')
-  Route.post('/remove-card', 'SubscriptionsController.removeCard')
-  Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
-  Route.get('/wallet', 'SubscriptionsController.GetWallet')
-  Route.get('/transactions', 'SubscriptionsController.GetTransactions')
-
-
-
-
-
-
-
+	Route.post('/subscribe', 'SubscriptionsController.subscribeToPlan')
+	Route.get('/cards', 'SubscriptionsController.GetCard')
+	Route.post('/add-card', 'SubscriptionsController.addCard')
+	Route.post('/remove-card', 'SubscriptionsController.removeCard')
+	Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
+	Route.get('/wallet', 'SubscriptionsController.GetWallet')
+	Route.get('/transactions', 'SubscriptionsController.GetTransactions')
 
 }).prefix('users').middleware('auth')
 
-Route.group(()=>{
-  Route.get('/', 'MoviesController.GetAllMovies')
-  Route.get('/series', 'MoviesController.GetAllShow')
-  Route.get('/clips', 'MoviesController.GetClips')
-  Route.get('/:id', 'MoviesController.GetMovie')
+//movies endpoint group
+Route.group(() => {
+	Route.get('/', 'MoviesController.GetAllMovies')
+	Route.get('/series', 'MoviesController.GetAllShow')
+	Route.get('/clips', 'MoviesController.GetClips')
+	Route.get('/:id', 'MoviesController.GetMovie')
 }).prefix('movies')
 
-Route.group(()=>{
-  Route.group(()=>{
+Route.group(() => {
+	Route.group(() => {
 
-  })
+	})
 }).prefix('admin')
 

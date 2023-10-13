@@ -12,7 +12,8 @@
 		"expose-host": "ngrok http 3333",
 		"seed-db": "node ace db:seed -i",
 		"test": "node ace test",
-		"migration:run": "node ace migration:run"
+		"migration:run": "node ace migration:run",
+		"migration:refresh": "node ace migration:refresh"
 	},
 	"devDependencies": {
 		"@japa/preset-adonis": "^1.2.0",

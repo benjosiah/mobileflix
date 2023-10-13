@@ -37,7 +37,7 @@ export default class Movie extends BaseModel {
   public genres: string
 
   @column()
-  public vidio_object: any
+  public video_object: any
 
   @column()
   public is_series: boolean
@@ -107,7 +107,7 @@ export default class Movie extends BaseModel {
 
 //         if(cast !== null){
 //             casts.push(cast)
-//         }  
+//         }
 //     }
 //     // console.log(casts)
 //     return casts

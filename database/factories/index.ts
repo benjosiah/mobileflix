@@ -19,7 +19,7 @@ export const MoviesFactory = Factory
       genres: "comedy, romance"
     }
   })
-  .relation('clips', () => ClipFactory) 
+  .relation('clips', () => ClipFactory)
   .build()
 
   export const SeriesFactory = Factory
@@ -33,7 +33,7 @@ export const MoviesFactory = Factory
 
     }
   })
-  .relation('season', () => SeasonFactory) 
+  .relation('season', () => SeasonFactory)
   .build()
 
   export const SeasonFactory = Factory
@@ -42,13 +42,13 @@ export const MoviesFactory = Factory
       title: faker.lorem.sentence(),
     }
   })
-  .relation('movies', () => MoviesFactory) 
+  .relation('movies', () => MoviesFactory)
   .build()
 
   export const ClipFactory = Factory
   .define(MovieClip, ({ faker }) => {
     return {
-        vidio_object: faker.lorem.sentences()
+        video_object: faker.lorem.sentences()
     }
   })
   .build()
@@ -58,7 +58,7 @@ export const MoviesFactory = Factory
     return {
       name: faker.lorem.words(2),
       image: "https://www.rwlasvegas.com/wp-content/uploads/2022/09/Kevin-Hart-Reality-Check-Press-Headshot.jpeg"
-      
+
     }
   })
   .build()

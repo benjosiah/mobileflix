@@ -58,15 +58,19 @@ export default class AuthController {
 			password: schema.string()
 		})
 
-		// try {
 		const payload = await request.validate({schema: userSchema})
 		const token = await auth.use('api').attempt(payload.email, payload.password)
 
-		const user = await User.query().where('email', payload.email)
-			.preload('accounts')
-			.preload('wallet')
-			.preload('plan')
-			.first()
+		const user = await User.query().where('email', payload.email).first()
+
+		if (!user) return response.status(404).json({
+			message: 'User not found',
+			status: 'error'
+		})
+
+		await user.load('accounts')
+		await user.load('wallet')
+		await user.load('plan')
 
 
 		return response.json({
@@ -74,9 +78,7 @@ export default class AuthController {
 			data: {user, token},
 			status: "success"
 		})
-		// } catch {
-		//   return response.status(401).json({ message: 'Invalid credentials', staus: "error" })
-		// }
+
 	}
 
 	public async forgotPassword({request, response}: HttpContextContract) {
@@ -330,6 +332,30 @@ export default class AuthController {
 
 	}
 
+	public async GetUserInfo({auth, response}: HttpContextContract) {
+
+		const user = auth.user
+
+		if (!auth || !user) return response.status(401).json({
+			message: 'Unauthorized User access, please login to continue',
+			status: "error"
+		})
+
+		await user?.load('wallet')
+		await user?.load('accounts')
+		await user?.load('plan')
+
+
+		return response.json({
+			message: 'User info retrieved successfully',
+			status: 'success',
+			data: user
+		})
+
+
+		//
+
+	}
 
 }
 

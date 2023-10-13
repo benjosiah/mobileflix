@@ -104,6 +104,7 @@ export default class SubscriptionsController {
 
 		if (await subscription.save()) {
 			user.is_subscribed = true
+			user.plan_id = payload.plan_id
 			user.save()
 
 			wallet.balance = parseFloat(wallet.balance) - parseFloat(plan.price)
@@ -297,7 +298,7 @@ export default class SubscriptionsController {
 			await transaction.save()
 		}
 
-		return response.status(201).json({message: 'Data Recieved', status: "success"})
+		return response.status(201).json({message: 'Data Received', status: "success"})
 
 
 	}
