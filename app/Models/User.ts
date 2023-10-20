@@ -1,12 +1,13 @@
-import {DateTime} from 'luxon'
-import {BaseModel, belongsTo, BelongsTo, column, hasMany, HasMany, HasOne, hasOne} from '@ioc:Adonis/Lucid/Orm'
+import { DateTime } from 'luxon'
+import Hash from '@ioc:Adonis/Core/Hash'
+import { BaseModel, beforeSave, belongsTo, BelongsTo, column, hasMany, HasMany, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
 import Account from './Account'
 import Wallet from './Wallet'
 import Subscription from './Subscription'
 import Plan from './Plan'
 
 export default class User extends BaseModel {
-	@column({isPrimary: true})
+	@column({ isPrimary: true })
 	public id: number
 
 	@column()
@@ -15,7 +16,7 @@ export default class User extends BaseModel {
 	@column()
 	public email: string
 
-	@column()
+	@column({ serializeAs: null }) //user password should not be serialized
 	public password: string
 
 	@column()
@@ -24,10 +25,10 @@ export default class User extends BaseModel {
 	@column()
 	public plan_id: number
 
-	@column.dateTime({autoCreate: true})
+	@column.dateTime({ autoCreate: true })
 	public createdAt: DateTime
 
-	@column.dateTime({autoCreate: true, autoUpdate: true})
+	@column.dateTime({ autoCreate: true, autoUpdate: true })
 	public updatedAt: DateTime
 
 
@@ -49,6 +50,15 @@ export default class User extends BaseModel {
 		foreignKey: 'plan_id',
 	})
 	public plan: BelongsTo<typeof Plan>
+
+	@beforeSave()
+	public static async hashPassword(user: User) {
+		if (user.$dirty.password) {
+			user.password = await Hash.make(user.password)
+		}
+	}
+
+
 }
 
 

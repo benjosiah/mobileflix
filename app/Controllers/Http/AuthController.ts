@@ -1,19 +1,20 @@
-import {HttpContextContract} from '@ioc:Adonis/Core/HttpContext'
-import Hash from '@ioc:Adonis/Core/Hash'
+import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 // import auth  from '@ioc:Adonis/Addons/Auth'
 import User from 'App/Models/User'
 import ResetToken from 'App/Models/ResetToken'
-import {rules, schema} from '@ioc:Adonis/Core/Validator'
+import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Wallet from 'App/Models/Wallet'
 import * as crypto from "crypto";
 import Mail from '@ioc:Adonis/Addons/Mail'
-import {DateTime} from "luxon";
+import { DateTime } from "luxon";
 import Env from '@ioc:Adonis/Core/Env'
+import ValidatorMessages from 'Config/validator_messages'
 
 
 export default class AuthController {
-	public async register({request, response}: HttpContextContract) {
+	public async register({ request, response }: HttpContextContract) {
 
+		//############################# Input Validation #############################
 		const userSchema = schema.create({
 			name: schema.string([
 				rules.required()
@@ -22,66 +23,131 @@ export default class AuthController {
 				rules.email(),
 				rules.required(),
 				// @ts-ignore
-				rules.unique({table: 'users', column: 'email'})
+				rules.unique({ table: 'users', column: 'email' })
 			]),
 			password: schema.string([
 				rules.required(),
 			])
 		})
+		// Re-format exception as a proper resonse for the Frontend Developer
+		try {
+			await request.validate({ schema: userSchema, messages: ValidatorMessages }) //@seunoyeniyi: I added messages for end user friendly error messages
+		} catch (error) {
+			return response.badRequest({
+				status: "failed",
+				code: error.code,
+				message: error.messages?.errors[0]?.message,
+				data: null
+			})
+		}
+		//############################# End Input Validation #############################
 
-		const payload = await request.validate({schema: userSchema})
+		const input = request.all();
 
-		const user = new User()
-		user.name = payload.name
-		user.email = payload.email
-		user.password = await Hash.make(payload.password)
-		await user.save()
+		try { //try catch block to catch any error that may occur while registering user
+			const user = new User()
+			user.name = input.name
+			user.email = input.email
+			user.password = input.password //this will be hashed automatically by the beforeSave hook in the User model
+			await user.save()
 
-		const wallet = new Wallet
-		wallet.user_id = user.id
-		wallet.balance = 0
-		wallet.save()
+			const wallet = new Wallet
+			wallet.user_id = user.id
+			wallet.balance = 0
+			wallet.save()
 
-		return response.status(201).json({
-			message: 'User registered successfully',
-			status: 'success'
-		})
+			return response.ok({
+				status: "success",
+				code: "SUCCESS",
+				message: 'User registered successfully',
+				data: user,
+			})
+		} catch (error) {
+			return response.badRequest({
+				status: "failed",
+				code: error.code,
+				message: error.message,
+				data: null,
+			})
 
 
+		}
 	}
 
-	public async login({auth, request, response}: HttpContextContract) {
+	public async login({ auth, request, response }: HttpContextContract) {
+
+		//############################# Input Validation #############################
 		const userSchema = schema.create({
 			email: schema.string([
 				rules.email(),
 			]),
 			password: schema.string()
 		})
-
-		const payload = await request.validate({schema: userSchema})
-		const token = await auth.use('api').attempt(payload.email, payload.password)
-
-		const user = await User.query().where('email', payload.email).first()
-
-		if (!user) return response.status(404).json({
-			message: 'User not found',
-			status: 'error'
-		})
-
-		await user.load('accounts')
-		await user.load('wallet')
-		await user.load('plan')
+		// Re-format exception as a proper resonse for the Frontend Developer
+		try {
+			await request.validate({ schema: userSchema, messages: ValidatorMessages })
+		} catch (error) {
+			return response.badRequest({
+				status: "failed",
+				code: error.code,
+				message: error.messages?.errors[0]?.message,
+				data: null
+			})
+		}
+		//#############################End Input Validation #############################
 
 
-		return response.json({
-			message: "Login successfully",
-			data: {user, token},
-			status: "success"
-		})
+
+
+
+
+		const input = request.all();
+
+		try {
+			const token = await auth.use("api").attempt(input.email, input.password);
+
+			const user = token.user;
+
+			await user.load('accounts')
+			await user.load('wallet')
+			await user.load('plan')
+
+			return response.ok({
+				status: "success",
+				code: "SUCCESS", //
+				message: "Login success",
+				data: { user, token }
+			})
+
+		} catch (error) {
+			return response.unauthorized({
+				status: "failed",
+				code: error?.code ?? "E_UNAUTHORIZED_ACCESS",
+				message: "Invalid credentials",
+				data: null
+			})
+		}
+
+
 
 	}
 
-	public async forgotPassword({request, response}: HttpContextContract) {
+
+	/**
+	 * @seunoyeniyi to @jesulonimii
+	 * 
+	 * @note I've reviewed and corrected the above code.... Remain below.
+	 * @jesulonimii If you've already reviewed and confirmed the below code, you can move it up and delete this note
+	 * @Note Make sure, they return proper response format for frond end developer... I hate issues like this
+	 * 
+	 * I'm moving to MoviesController
+	 */
+
+
+
+
+
+	public async forgotPassword({ request, response }: HttpContextContract) {
 		const validateSchema = schema.create({
 			email: schema.string([
 				rules.email(),
@@ -103,7 +169,7 @@ export default class AuthController {
 		})
 
 
-		const payload = await request.validate({schema: validateSchema})
+		const payload = await request.validate({ schema: validateSchema })
 
 		const user = await User.query().where('email', payload.email).first()
 
@@ -125,7 +191,7 @@ export default class AuthController {
 			const token = new ResetToken()
 			token.email = payload.email
 			token.token = resetOTP
-			token.expiresAt = DateTime.now().plus({minutes: 15})
+			token.expiresAt = DateTime.now().plus({ minutes: 15 })
 
 			await token.save()
 
@@ -166,7 +232,7 @@ export default class AuthController {
 			const token = new ResetToken()
 			token.email = payload.email
 			token.token = resetToken
-			token.expiresAt = DateTime.now().plus({hours: 2})
+			token.expiresAt = DateTime.now().plus({ hours: 2 })
 
 			await token.save()
 
@@ -208,7 +274,7 @@ export default class AuthController {
 
 	}
 
-	public async verifyResetOTP({request, response}: HttpContextContract) {
+	public async verifyResetOTP({ request, response }: HttpContextContract) {
 
 		const validateSchema = schema.create({
 			email: schema.string([
@@ -221,7 +287,7 @@ export default class AuthController {
 			]),
 		})
 
-		const payload = await request.validate({schema: validateSchema})
+		const payload = await request.validate({ schema: validateSchema })
 
 
 
@@ -244,7 +310,7 @@ export default class AuthController {
 
 	}
 
-	public async verifyResetTokenCallback({request, response, view}: HttpContextContract) {
+	public async verifyResetTokenCallback({ request, response, view }: HttpContextContract) {
 
 
 		const reset_token = request.qs()?.token
@@ -276,7 +342,7 @@ export default class AuthController {
 
 	}
 
-	public async resetPassword({request, response}: HttpContextContract) {
+	public async resetPassword({ request, response }: HttpContextContract) {
 		const validateSchema = schema.create({
 			new_password: schema.string([
 				rules.required(),
@@ -295,13 +361,13 @@ export default class AuthController {
 			status: 'error'
 		})
 
-		const payload = await request.validate({schema: validateSchema})
+		const payload = await request.validate({ schema: validateSchema })
 
 
 		const checkResetRequest = await ResetToken.query().where('email', payload?.email).first()
 
 
-		if (!checkResetRequest || checkResetRequest.token !== reset_token || new Date() > new Date(checkResetRequest?.expiresAt.toString())  ) return response.status(403).json({
+		if (!checkResetRequest || checkResetRequest.token !== reset_token || new Date() > new Date(checkResetRequest?.expiresAt.toString())) return response.status(403).json({
 			message: 'Password reset rejected: Invalid or expired password reset token/OTP',
 			status: 'error'
 		})
@@ -313,7 +379,7 @@ export default class AuthController {
 			status: 'error'
 		})
 
-		user.password = await Hash.make(payload.new_password)
+		user.password = payload.new_password
 
 		if (await user.save()) {
 
@@ -332,7 +398,7 @@ export default class AuthController {
 
 	}
 
-	public async GetUserInfo({auth, response}: HttpContextContract) {
+	public async GetUserInfo({ auth, response }: HttpContextContract) {
 
 		const user = auth.user
 
