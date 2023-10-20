@@ -30,6 +30,7 @@ export default class AuthController {
 			])
 		})
 		// Re-format exception as a proper resonse for the Frontend Developer
+		//always use try catch block to catch any error that may occur while validating user input, front-end developers won't undertsand exceptions
 		try {
 			await request.validate({ schema: userSchema, messages: ValidatorMessages }) //@seunoyeniyi: I added messages for end user friendly error messages
 		} catch (error) {
@@ -84,7 +85,8 @@ export default class AuthController {
 			password: schema.string()
 		})
 		// Re-format exception as a proper resonse for the Frontend Developer
-		try {
+		//always use try catch block to catch any error that may occur while validating user input, front-end developers won't undertsand exceptions
+		try { 
 			await request.validate({ schema: userSchema, messages: ValidatorMessages })
 		} catch (error) {
 			return response.badRequest({
@@ -138,7 +140,7 @@ export default class AuthController {
 	 * 
 	 * @note I've reviewed and corrected the above code.... Remain below.
 	 * @jesulonimii If you've already reviewed and confirmed the below code, you can move it up and delete this note
-	 * @Note Make sure, they return proper response format for frond end developer... I hate issues like this
+	 * @Note Make sure, they return proper response format for frond end developer... I hate issues with co-front-end-developers
 	 * 
 	 * I'm moving to MoviesController
 	 */
