@@ -1,240 +1,133 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Cast from 'App/Models/Cast'
-// import CustomException from 'App/Exceptions/CustomException'
 import Movie from 'App/Models/Movie'
-import MovieClip from 'App/Models/MovieClip'
-import Season from 'App/Models/Season'
-import Series from 'App/Models/Series'
-import {rules, schema} from '@ioc:Adonis/Core/Validator'
-import Env from "@ioc:Adonis/Core/Env";
+import { rules, schema } from '@ioc:Adonis/Core/Validator'
+import ValidatorMessages from 'Config/validator_messages';
 
 export default class MoviesController {
-    public async GetAllMoviesAndSeries({response }: HttpContextContract) {
-        const plans = await Movie.all()
+    public async index({ response, request }: HttpContextContract) {
 
-        return response.status(201).json({ message: '', status: "success", data: plans })
-
-    }
-
-    public async GetAllMovies({response, request }: HttpContextContract) {
-
-        const moviesQuery = Movie.query().where('is_series', 0)
-                                 .preload('clips')
-                                 .preload('cast1')
-                                 .preload('cast2')
-                                 .preload('cast3')
-                                 .preload('cast4')
-                                 .preload('cast5')
-
-        // Specify the page number and number of items per page
         const page = request.input('page', 1);
-        const perPage = request.input('limit', 10); // Number of items per page
+        const perPage = request.input('limit', 30); // Number of items per page
 
-        // Paginate the records
-        const movies = await moviesQuery.paginate(page, perPage);
+        const type = request.input('type'); //null for all
+        const search = request.input('search'); //null for all
 
+        try {
+            let moviesQuery = Movie.query()
+                .whereIn('type', ['movie', 'series', 'show']); // movies, series, and shows by default, don't include children like episodes and clips
 
-        return response.status(201).json({ message: 'Movies', status: "success", data: movies })
-
-    }
-
-    public async GetAllShow({response, request }: HttpContextContract) {
-        const page = request.input('page', 1);
-        const perPage = 10;
-
-        const series = await Series.query()
-        .preload('season', (season)=>{
-            season.orderBy('season_number', 'asc')
-            .preload('movies', (moviesQuery) => {
-                moviesQuery.orderBy('episode', 'asc')
-                .preload('clips', (clipQuery)=>{
-                    clipQuery.orderBy('id', 'asc');
-                });
-            });
-        })
-          .paginate(page, perPage);
-
-
-
-        return response.status(201).json({ message: 'Series', status: "success", data: series })
-
-    }
-
-    public async GetMovie({response, params }: HttpContextContract) {
-        const id = params.id
-        let movie = await Movie.query().where('id', id)
-                                .preload('clips')
-                                .preload('cast1')
-                                .preload('cast2')
-                                .preload('cast3')
-                                .preload('cast4')
-                                .preload('cast5')
-                                .first()
-        if(movie == null){
-            return response.status(404).json({message: 'Movie was not found', status: "error"})
-        }
-        if(movie.is_series){
-            const season = await Season.find(movie.season_id)
-            if(season == null){
-                return response.status(404).json({message: 'Movie was not found', status: "error"})
+            if (type) {
+                moviesQuery = moviesQuery.where('type', type)
             }
-             let series = await Series.query().where('id', season.series_id)
-            .preload('season', (seasonsQuery) => {
-                seasonsQuery.orderBy('season_number', 'asc'); // Sort seasons by season_number
-                seasonsQuery.preload('movies', (moviesQuery) => {
-                    moviesQuery.orderBy('episode', 'asc');
-                    moviesQuery.preload('clips', (clipQuery)=>{
-                        clipQuery.orderBy('id', 'asc');
-                    }).preload('cast1')
-                    .preload('cast2')
-                    .preload('cast3')
-                    .preload('cast4')
-                    .preload('cast5')
-                })
-            }).first()
-
-            if(series == null){
-                return response.status(404).json({message: 'Movie was not found', status: "error"})
+            if (search) {
+                moviesQuery = moviesQuery.where('title', 'LIKE', `%${search}%`)
             }
 
-            return response.status(201).json({ message: 'Series', status: "success", data: series })
-        }
+            //preload - NOTE: Not all relations needs to be preloaded for lising, but all are preloaded for single fetch by id
+            moviesQuery = moviesQuery
+                .preload('casts')
+                .preload('tags')
+                .preload('seasons')
 
+            // Paginate the records
+            const movies = await moviesQuery.paginate(page, perPage);
 
-        return response.status(201).json({ message: 'Mobie', status: "success", data: movie })
-
-    }
-
-    public async GetClips({response, request }: HttpContextContract) {
-        const page = request.input('page', 1);
-		const limit = request.input('limit', 10);
-
-        // Query the MovieClip model to get random records
-        const movieClips = await MovieClip.query()
-          .orderByRaw(Env.get('DB_CONNECTION') === "pgsql" ? 'RANDOM()' : 'RAND()')
-          .preload('movie', (moviesQuery) => {
-            moviesQuery.preload('cast1')
-            .preload('cast2')
-            .preload('cast3')
-            .preload('cast4')
-            .preload('cast5')
-          })
-          .paginate(page, limit);
-
-
-
-
-
-        return response.status(201).json({ message: 'Cinemo Clips', status: "success", data: movieClips })
-
-    }
-
-    public async getCasts({response }: HttpContextContract){
-
-        // Query the MovieClip model to get random records
-        const casts = await Cast.all()
-
-        return response.status(201).json({ message: 'Casts', status: "success", data: casts })
-    }
-
-    public async saveCasts({response, request }: HttpContextContract){
-        const castSchema = schema.create({
-            name: schema.string([
-                rules.required()
-            ]),
-            image: schema.string([
-                rules.required()
-            ]),
+            return response.ok({
+                status: 'success',
+                code: "SUCCESS",
+                message: "Movies fetched successfully",
+                data: movies.serialize().data,
+                meta: movies.serialize().meta,
             })
 
-            const payload = await request.validate({ schema: castSchema })
+        } catch (error) {
+            return response.internalServerError({
+                status: 'error',
+                code: error.code,
+                message: error.message || "An error occured while fetching movies",
+                data: null,
+            })
+        }
+    }
+    public async show({ response, params }: HttpContextContract) {
+        const id = params.id
 
-        const cast = new Cast()
-        cast.name = payload.name
-        cast.image = payload.image
-        await cast.save()
 
-        return response.status(201).json({ message: 'Cast Added Successfully', status: "success", data: cast  })
+
+        try {
+            let movie = await Movie.query().where('id', id)
+                .preload('clips')
+                .preload('casts')
+                .preload('tags')
+                .preload('seasons', (season) => {
+                    season.preload('episodes')
+                })
+                .firstOrFail()
+
+            return response.ok({
+                status: 'success',
+                code: "SUCCESS",
+                message: "Movie fetched successfully",
+                data: movie,
+            })
+        } catch (error) {
+            return response.internalServerError({
+                status: 'error',
+                code: error.code,
+                message: error.message || "An error occured while fetching movie",
+                data: null,
+            })
+        }
+
+
+
     }
 
-    public async saveMovie({response, request }: HttpContextContract){
-        const castSchema = schema.create({
+    public async addMovie({ response, request }: HttpContextContract) {
+
+        //############################# Input Validation #############################
+        const inputSchema = schema.create({
             title: schema.string([
                 rules.required()
             ]),
-            plot: schema.string([
-                rules.required()
-            ]),
-            cast1_id: schema.number([
-                rules.required()
-            ]),
+        })
+        // Re-format exception as a proper resonse for the Frontend Developer
+        //always use try catch block to catch any error that may occur while validating user input, front-end developers won't undertsand exceptions
+        try {
+            await request.validate({ schema: inputSchema, messages: ValidatorMessages }) //@seunoyeniyi: I added messages for end user friendly error messages
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code,
+                message: error.messages?.errors[0]?.message,
+                data: null
+            })
+        }
+        //############################# End Input Validation #############################
 
-            cast2_id: schema.number([
-                rules.required()
-            ]),
-            cast3_id: schema.number([
-                rules.required()
-            ]),
-            cast4_id: schema.number([
-                rules.required()
-            ]),
-            cast5_id: schema.number([
-                rules.required()
-            ]),
+        const input = request.all();
 
+        try {
+            const movie = new Movie();
+            movie.title = input.title;
+            movie.save();
 
-            video_object: schema.string([
-                rules.required()
-            ]),
-            tags: schema.string([
-                rules.required()
-            ]),
-
+            return response.ok({
+                status: 'success',
+                code: "SUCCESS",
+                message: "Movie saved successfully",
+                data: movie,
             })
 
-            const payload = await request.validate({ schema: castSchema })
-
-        const movie = new Movie()
-        movie.title = payload.title
-        movie.plot = payload.plot
-        movie.cast1_id = payload.cast1_id
-        movie.cast2_id = payload.cast2_id
-        movie.cast3_id = payload.cast3_id
-        movie.cast4_id = payload.cast4_id
-        movie.cast5_id = payload.cast5_id
-        movie.tags = payload.tags
-        movie.video_object = payload.video_object
-        await movie.save()
-
-        return response.status(201).json({ message: 'Movie Added Successfully', status: "success", data: movie  })
-    }
-
-    public async saveMovieClip({response, request }: HttpContextContract){
-        const castSchema = schema.create({
-            movie_id: schema.number([
-                rules.required()
-            ]),
-            video_object: schema.string([
-                rules.required()
-            ]),
-
-
+        } catch (error) {
+            return response.internalServerError({
+                status: 'error',
+                code: error.code,
+                message: error.message || "An error occured while saving cast",
+                data: null,
             })
+        }
 
-            const payload = await request.validate({ schema: castSchema })
-            const movie = await Movie.find(payload.movie_id);
-
-            if(movie == null){
-                return
-            }
-
-        const clip = new MovieClip()
-        clip.movie_id = payload.movie_id
-        clip.video_object = payload.video_object
-        await clip.save()
-
-        return response.status(201).json({ message: 'clip Added Successfully', status: "success", data: clip  })
     }
-
 
 }

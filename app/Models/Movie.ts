@@ -1,10 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, HasMany, hasMany, belongsTo, BelongsTo } from '@ioc:Adonis/Lucid/Orm'
-import MovieClip from './MovieClip'
-import Series from './Series'
-import Season from './Season'
+import { BaseModel, HasMany, ManyToMany, beforeSave, column, hasMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
 import Cast from './Cast'
-
+import Tag from './Tag'
+import Season from './Season'
 export default class Movie extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -13,40 +11,43 @@ export default class Movie extends BaseModel {
   public title: string
 
   @column()
-  public plot: string
+  public slug: string
 
   @column()
-  public cast1_id: number
+  public userId: number
 
   @column()
-  public cast2_id: number
-
-  @column()
-  public cast3_id: number
-
-  @column()
-  public cast4_id: number
-
-  @column()
-  public cast5_id: number
-
-  @column()
-  public tags: string
+  public description: string
 
   @column()
   public genres: string
 
   @column()
-  public video_object: any
+  public type: string
 
   @column()
-  public is_series: boolean
+  public videoObject: Record<string, any>
 
   @column()
-  public season_id: number
+  public parentId: number
 
   @column()
-  public episode: number
+  public seasonId: number
+
+  @column()
+  public duration: number
+
+  @column()
+  public averageRating: number
+
+  @column()
+  public releasedAt: DateTime
+
+  @column()
+  public featuredImageUrl: string
+
+  @column()
+  public videoUrl: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -54,63 +55,58 @@ export default class Movie extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @hasMany(() => MovieClip, {
-    foreignKey: 'movie_id',
+
+  // RELATIONSHIPS
+  //casts
+  @manyToMany(() => Cast, {
+    pivotTable: 'term_relationships',
+    pivotForeignKey: 'object_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'term_id',
+    pivotColumns: ['object_type', 'term_type'],
+    onQuery(query) {
+      query.where('term_type', 'cast').where('object_type', 'movie')
+    }
   })
-  public clips: HasMany<typeof MovieClip>
+  public casts: ManyToMany<typeof Cast>
 
-  @belongsTo(() => Series)
-  public series: BelongsTo<typeof Series>
-
-  @belongsTo(() => Season)
-  public season: BelongsTo<typeof Season>
-
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast1_id',
+  //tags
+  @manyToMany(() => Tag, {
+    pivotTable: 'term_relationships',
+    pivotForeignKey: 'object_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'term_id',
+    pivotColumns: ['object_type', 'term_type'],
+    onQuery(query) {
+      query.where('term_type', 'tag').where('object_type', 'movie')
+    }
   })
-  public cast1: BelongsTo<typeof Cast>
+  public tags: ManyToMany<typeof Tag>
 
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast2_id',
+  //seasons
+  @hasMany(() => Season)
+  public seasons: HasMany<typeof Season>
+
+  //clips
+  @hasMany(() => Movie, {
+    foreignKey: 'parentId',
+    onQuery(query) {
+      query.where('type', 'clip')
+    }
   })
-  public cast2: BelongsTo<typeof Cast>
+  public clips: HasMany<typeof Movie>
 
 
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast3_id',
-  })
-  public cast3: BelongsTo<typeof Cast>
 
 
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast4_id',
-  })
-  public cast4: BelongsTo<typeof Cast>
 
-
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast5_id',
-  })
-  public cast5: BelongsTo<typeof Cast>
-
-// @computed()
-//  public get casts() {
-//     return this.getCasts(this.cast)
-//   }
-
-//   public async getCasts(cast: any) {
-//     let casts = Array()
-//     let list = JSON.parse(cast)
-//     // return cast
-//     for(let x =0; x < list.length; x++){
-//          cast = await Cast.find(1)
-
-//         if(cast !== null){
-//             casts.push(cast)
-//         }
-//     }
-//     // console.log(casts)
-//     return casts
-
-//   }
+  // ACTIONS
+  //generate slug from title before saving
+  @beforeSave()
+  public static async generateSlug(movie: Movie) {
+    if (movie.$dirty.title) {
+      movie.slug = movie.title.toLowerCase().replace(/[^a-z0-9-]+/g, '-')
+    }
+  }
+ 
 }

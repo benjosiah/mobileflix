@@ -1,13 +1,19 @@
 import BaseSchema from '@ioc:Adonis/Lucid/Schema'
 
 export default class extends BaseSchema {
-  protected tableName = 'movie_clips'
+  protected tableName = 'tags'
 
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.json('video_object')
-      table.integer('movie_id')
+
+      table.string('name').notNullable()
+      table.string('slug').nullable().unique()
+      table.integer('parent_id').unsigned().nullable() // for hierarchical taxonomies
+
+      /**
+       * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
+       */
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })

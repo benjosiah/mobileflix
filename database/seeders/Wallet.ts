@@ -9,6 +9,10 @@ export default class extends BaseSeeder {
 			{
 				user_id: 1,
 				balance: "50000"
+			},
+			{
+				user_id: 2,
+				balance: "50000"
 			}
 		])
 	}

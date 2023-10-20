@@ -23,7 +23,7 @@ import Route from '@ioc:Adonis/Core/Route'
 import swagger from "Config/swagger";*/
 
 Route.get('/', async () => {
-	return {hello: 'world'}
+	return { hello: 'world' }
 })
 
 // returns swagger in YAML
@@ -37,6 +37,8 @@ Route.get("/docs", async () => {
 	return AutoSwagger.ui("/swagger");
 });*/
 
+
+// AUTHENTICATION
 Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
 Route.post('/forgot-password', 'AuthController.forgotPassword')
@@ -44,10 +46,13 @@ Route.post('/reset-password', 'AuthController.resetPassword')
 Route.post('/verify-reset-otp', 'AuthController.verifyResetOTP')
 Route.get('/verify-reset-token', 'AuthController.verifyResetTokenCallback')
 
+// PAYMENT AND SUBSCRIPTION
 Route.post('/verify-payment', 'SubscriptionsController.verifyPayments') //paystack webhook
 Route.get('/plans', 'SubscriptionsController.GetPlans')
 
 
+
+// AUTHENTICATED
 Route.group(() => {
 	Route.post('/accounts', 'AccountsController.add')
 	Route.get('accounts', 'AccountsController.index')
@@ -66,14 +71,29 @@ Route.group(() => {
 
 }).prefix('users').middleware('auth')
 
-//movies endpoint group
+
+
+
+//MOVIES
 Route.group(() => {
-	Route.get('/', 'MoviesController.GetAllMovies')
-	Route.get('/series', 'MoviesController.GetAllShow')
-	Route.get('/clips', 'MoviesController.GetClips')
-	Route.get('/:id', 'MoviesController.GetMovie')
+	Route.get('/', 'MoviesController.index') //list all movies
+	Route.get('/:id', 'MoviesController.show').where('id', /^[0-9]+$/) //get single movie
 }).prefix('movies')
 
+// CASTS
+Route.group(() => {
+	Route.get('/', 'CastsController.index') //list all casts
+}).prefix('casts')
+
+// CLIPS
+Route.group(() => {
+	Route.get('/', 'ClipsController.index') //list all clips
+}).prefix('clips')
+
+
+
+
+// ADMIN
 Route.group(() => {
 	Route.group(() => {
 

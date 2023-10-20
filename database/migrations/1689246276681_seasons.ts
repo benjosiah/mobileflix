@@ -6,9 +6,13 @@ export default class extends BaseSchema {
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.bigInteger('series_id')
-      table.integer('season_number')
-      table.string('title').nullable()
+
+      table.string('title').notNullable()
+      table.integer('season_number').notNullable()
+
+      table.integer('movie_id').unsigned().references('id').inTable('movies')
+      
+      
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })
