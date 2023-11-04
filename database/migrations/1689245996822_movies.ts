@@ -31,7 +31,7 @@ export default class extends BaseSchema {
 
       table.string('featured_image_url').nullable() //eg. https://www.example.com/image.jpg
      
-      table.string('video_url').nullable() //eg. https://www.example.com/video.mp4
+      table.text('video_url').nullable() //eg. https://www.example.com/video.mp4
 
 
       table.timestamp('created_at', { useTz: true })
