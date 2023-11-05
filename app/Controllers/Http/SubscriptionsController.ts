@@ -1,323 +1,391 @@
-import type {HttpContextContract} from '@ioc:Adonis/Core/HttpContext'
-import {rules, schema} from '@ioc:Adonis/Core/Validator'
+import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import Plan from 'App/Models/Plan'
-import Subscription from 'App/Models/Subscription'
-import Wallet from 'App/Models/Wallet'
-import User from 'App/Models/User'
-// import CustomException from 'App/Exceptions/CustomException'
 import PaymentService from 'App/Service/PaymentService'
-import Card from 'App/Models/Card'
-import Transaction from 'App/Models/Transaction'
+import ValidatorMessages from 'Config/validator_messages'
+import Env from '@ioc:Adonis/Core/Env'
+import Payment from 'App/Models/Payment'
 
 export default class SubscriptionsController {
 
-	public async GetPlans({response}: HttpContextContract) {
-		const plans = await Plan.all()
-
-		return response.status(201).json({message: 'Subscription Plans', status: "success", data: plans})
-
-	}
-
-	public async GetCard({response, auth}: HttpContextContract) {
-		const user = auth.user
-		if (user === undefined) {
-
-			return response.status(401).json({
-				message: 'Unauthorized User access, please login to continue',
-				status: "error"
-			})
-		}
-		const cards = await Card.query().where('user_id', user.id)
-
-		cards.forEach(card => {
-
-			try {
-				card.details = JSON.parse(card.details)
-			} catch (e) {
-				//console.log("Error parsing cards value, using as is:", e)
-			}
-
-		});
-
-		return response.status(201).json({message: 'User Cards', status: "success", data: cards})
-
-	}
-
-	public async GetWallet({response, auth}: HttpContextContract) {
-		const user = auth.user
-		if (user == undefined) {
-			// throw new CustomException('UnAthorize User access, please login to continue', 401)
-			return response.status(401).json({
-				message: 'Unauthorized User access, please login to continue',
-				status: "error"
-			})
-		}
-		const wallet = await Wallet.findBy('user_id', user.id)
-
-		return response.status(201).json({message: 'Wallet Info', status: "success", data: wallet})
-
-	}
-
-	public async subscribeToPlan({request, response}: HttpContextContract) {
-		const subscriptionSchema = schema.create({
-			plan_id: schema.number([
-				rules.required()
-			]),
-			user_id: schema.number([
-				rules.required()
-			]),
-		})
-
-
-		const payload = await request.validate({schema: subscriptionSchema})
-		const plan = await Plan.find(payload.plan_id)
-		const user = await User.find(payload.user_id)
-
-
-
-		if (user === null) {
-			// throw new CustomException('User ID does not match any uuser', 404)
-			return response.status(422).json({message: 'User ID does not match any uuser', status: "error"})
-		}
-		if (plan === null) {
-			// throw new CustomException('Plan ID does not match any subscription plan', 404)
-			return response.status(422).json({message: 'Plan ID does not match any subscription plan', status: "error"})
-		}
-
-		const wallet = await Wallet.findBy('user_id', user?.id)
-
-		if (wallet === null) {
-			// throw new CustomException('Plan ID does not match any subscription plan', 404)
-			return response.status(422).json({message: 'Plan ID does not match any subscription plan', status: "error"})
-		}
-
-
-		if (parseFloat(plan.price) > parseFloat(wallet.balance)) {
-			// throw new CustomException('Insufficient funds', 422)
-			return response.status(422).json({message: 'Insufficient funds', status: "error"})
-		}
-
-
-		const subscription = new Subscription
-		subscription.user_id = user.id
-		subscription.plan_id = payload.plan_id
-
-		if (await subscription.save()) {
-			user.is_subscribed = true
-			user.plan_id = payload.plan_id
-			user.save()
-
-			wallet.balance = parseFloat(wallet.balance) - parseFloat(plan.price)
-			wallet.save()
-
-		}
-
-		return response.status(201).json({message: 'Subscription successful', status: "success", data: subscription})
-
-
-	}
-
-	public async topUPWallet({request, response, auth}: HttpContextContract) {
-		const walletSchema = schema.create({
-			amount: schema.number([
-				rules.required()
-			]),
-
-			user_id: schema.number([
-				rules.required()
-			]),
-
-			card_id: schema.number([
-				rules.required()
-			]),
-		})
-
-		const user = auth.user
-
-
-		const payload = await request.validate({schema: walletSchema})
-
-		if (user == undefined) {
-			// throw new CustomException('UnAthorize User access, please login to continue', 401)
-			return response.status(401).json({
-				message: 'Unauthorized User access, please login to continue',
-				status: "error"
-			})
-		}
-
-		if (user.id !== payload.user_id) {
-			// throw new CustomException('User ID not the same as Authenticated User', 422)
-			return response.status(422).json({message: 'User ID does not match Authenticated User', status: "error"})
-		}
-		let wallet = await Wallet.findBy('user_id', user.id)
-		if (wallet == null) {
-			return
-		}
-
-		const payment = new PaymentService
-		const res = await payment.cardPayment(payload, user.email)
-
-		if (!res) return response.status(422).json({
-			message: 'An error occurred while processing payment. Try using another card',
-			status: "error"
-		})
-
-
-		if (res?.data && res?.data?.status == "success") {
-			wallet.balance = parseFloat(wallet.balance) + payload.amount
-			await wallet.save()
-		}
-
-
-		return response.status(201).json({message: 'Wallet Top-Up Successful', status: "success", data: wallet})
-
-
-	}
-
-	public async addCard({request, response, auth}: HttpContextContract) {
-		const CardSchema = schema.create({
-			charge_amount: schema.number([]),
-			user_id: schema.number([
-				rules.required()
-			]),
-
-		})
-
-		const payload = await request.validate({schema: CardSchema})
-
-		const user = auth.user
-
-		if (user == undefined) {
-			// throw new CustomException('UnAthorize User access, please login to continue', 401)
-			return response.status(401).json({
-				message: 'Unauthorized User access, please login to continue',
-				status: "error"
-			})
-		}
-
-		if (user.id !== payload.user_id) {
-			// throw new CustomException('User ID not the same as Authenticated User', 422)
-			return response.status(422).json({
-				message: 'Provided user ID does not match Authenticated User',
-				status: "error"
-			})
-		}
-
-		const payment = new PaymentService
-		const res = await payment.initiatePayment({...payload, amount: payload.charge_amount || 100}, user.email)
-
-		return response.status(201).json({message: 'Card added Successfully', status: "success", data: res})
-	}
-
-	public async removeCard({request, response, auth}: HttpContextContract) {
-		const Schema = schema.create({
-			user_id: schema.number([
-				rules.required()
-			]),
-		})
-
-		const payload = await request.validate({schema: Schema})
-
-
-		const user = auth.user
-		if (user === undefined) {
-
-			return response.status(401).json({
-				message: 'Unauthorized User access, please login to continue',
-				status: "error"
-			})
-		}
-
-
-		if (user.id !== payload.user_id) {
-			return response.status(403).json({
-				message: 'Unauthorized action, provided user does not match authenticated user',
-				status: "error"
-			})
-		}
-
-
-
-		const cards = await Card.query().where('user_id', user.id)
-		for (const card of cards) {
-			await card.delete()
-		}
-
-		return response.status(201).json({message: 'Cards removed Successfully', status: "success"})
-
-
-	}
-
-	public async verifyPayments({request, response}: HttpContextContract) {
-
-		console.log("webhook called")
-
-		const body = request.all()
-
-		// return body.data.authorization
-		const transaction = await Transaction.findBy('reference', body.data.reference)
-
-
-		if (transaction == null) {
-			return
-		}
-
-		const wallet = await Wallet.findBy('user_id', transaction.user_id)
-
-		if (wallet == null) {
-			return
-		}
-
-		if (body.data.status == "success") {
-			// return "bbb"
-			if (body.data.channel === "card") {
-
-				//logic to overwrite card details
-				const card = await Card.findBy('user_id', transaction.user_id)
-				if (card) {
-					card.details = JSON.stringify(body.data.authorization)
-					await card.save()
-				} else {
-					const card = new Card
-					card.user_id = transaction.user_id
-					card.details = JSON.stringify(body.data.authorization)
-					await card.save()
-				}
-
-			}
-
-			wallet.balance = parseFloat(wallet.balance) + parseFloat(transaction.amount)
-			await wallet.save()
-
-			transaction.status = body.data.status
-			transaction.details = JSON.stringify(body.data)
-			await transaction.save()
-		} else {
-			transaction.status = body.data.status
-			transaction.details = JSON.stringify(body.data)
-			await transaction.save()
-		}
-
-		return response.status(201).json({message: 'Data Received', status: "success"})
-
-
-	}
-
-	public async GetTransactions({response, auth}: HttpContextContract) {
-
-		const user = auth.user
-
-		if (user == undefined) {
-			return response.status(401).json({
-				message: 'Unauthorized User access, please login to continue',
-				status: "error"
-			})
-		}
-
-		const transactions = await Transaction.query().where('user_id', user.id)
-
-		return response.status(201).json({message: 'Transactions', status: "success", data: transactions})
-	}
-
+    public async index({ response, auth }: HttpContextContract) {
+        const user = auth.user!
+
+        try {
+
+            await user.load('subscriptions', (query) => {
+                query.preload('plan')
+                query.preload('payment')
+
+            })
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Subscriptions fetched successfully",
+                data: user.subscriptions,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "error",
+                code: error.code ?? "ERROR",
+                message: error.message ?? "Something went wrong",
+                data: null,
+            })
+        }
+    }
+    public async show({ request, response, auth }: HttpContextContract) {
+        const user = auth.user!
+        const id = request.param('id')
+
+        try {
+
+            const subscription = await user.related('subscriptions').query()
+                .where('id', id)
+                .preload('plan')
+                .preload('payment')
+                .preload('payments')
+                .first();
+
+            if (!subscription) {
+                throw new Error('Subscription not found')
+            }
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Subscription fetched successfully",
+                data: subscription,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code ?? "ERROR",
+                message: error.message ?? "Something went wrong",
+                data: null,
+            })
+        }
+    }
+    public async getActiveSubscription({ response, auth }: HttpContextContract) {
+        const user = auth.user!
+
+        try {
+
+            const subscription = await user.related('subscriptions').query()
+                .where('status', 'active')
+                .preload('plan')
+                .preload('payment')
+                .preload('payments')
+                .first();
+
+            if (!subscription) {
+                throw new Error('Active subscription not found')
+            }
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Subscription fetched successfully",
+                data: subscription,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code ?? "ERROR",
+                message: error.message ?? "Something went wrong",
+                data: null,
+            })
+        }
+    }
+    public async cancel({ request, response, auth }: HttpContextContract) {
+        const user = auth.user!
+        const id = request.param('id')
+
+        try {
+
+            const subscription = await user.related('subscriptions').query()
+                .where('id', id)
+                .preload('plan')
+                .preload('payment')
+                .preload('payments')
+                .first();
+
+            if (!subscription) {
+                throw new Error('Subscription not found')
+            }
+
+            subscription.status = 'canceled'
+            await subscription.save()
+
+            //remove plan from user
+            user.planId = null
+            await user.save()
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Subscription canceled successfully",
+                data: subscription,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code ?? "ERROR",
+                message: error.message ?? "Something went wrong",
+                data: null,
+            })
+        }
+    }
+    public async initialize_subscription({ request, response, auth }: HttpContextContract) {
+        const user = auth.user!
+
+        //############################# Input Validation #############################
+        const userSchema = schema.create({
+            //where plan id exists in database
+            plan_id: schema.number([
+                rules.required(),
+                rules.exists({ table: 'plans', column: 'id' })
+            ]),
+            payment_gateway: schema.enum(['paystack'] as const),
+            payment_method: schema.string.optional({ trim: true })
+        })
+        // Re-format exception as a proper resonse for the Frontend Developer
+        //always use try catch block to catch any error that may occur while validating user input, front-end developers won't undertsand exceptions
+        try {
+            await request.validate({ schema: userSchema, messages: ValidatorMessages })
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code,
+                message: error.messages?.errors[0]?.message,
+                data: null
+            })
+        }
+        //#############################End Input Validation #################################
+
+        const plan_id = request.input('plan_id');
+
+        try {
+
+
+
+            const plan = await Plan.find(plan_id)
+
+            if (!plan) {
+                throw new Error('Plan not found')
+            }
+
+
+            //check if user has an active subscription
+            const activeSubscription = await user.related('subscriptions').query()
+                .where('status', 'active')
+                .first();
+
+            if (activeSubscription) {
+                throw new Error('You already have an active subscription')
+            }
+
+
+            const paymentGateway = request.input('payment_gateway')
+
+            //generate payment reference
+            var paymentReference = "SUB_" + Math.floor(Math.random() * 1000000000) + 1;
+            var checkoutUrl = null
+            if (paymentGateway == 'paystack') {
+                const paystackResponse = await PaymentService.initiatePayment({
+                    reference: paymentReference,
+                    email: user.email,
+                    amount: plan.price,
+                    user_id: user.id,
+                    callback_url: Env.get('APP_URL') + '/subscriptions/webhook-paystack'
+                })
+
+                paymentReference = paystackResponse.data.reference //update payment reference with paystack reference if probabaly changed
+                checkoutUrl = paystackResponse.data.authorization_url
+
+                if (!paystackResponse.status) {
+                    throw new Error(paystackResponse.message)
+                }
+            }
+
+
+
+            //calculate start date to end date from plan.validityDays for example 10 days
+            const startDate = new Date()
+            var endDate = new Date()
+            endDate.setDate(startDate.getDate() + plan.validityDays)
+
+            //create payment
+            const payment = await user.related('payments').create({
+                amount: plan.price,
+                paymentStatus: 'pending',
+                paymentGateway: request.input('payment_gateway'),
+                paymentMethod: request.input('payment_method', null),
+                description: `Subscription to ${plan.name} plan`,
+                reference: paymentReference,
+                checkoutUrl: checkoutUrl
+            })
+
+            if (!payment) {
+                throw new Error('Payment not created')
+            }
+
+            //create subscription
+            const subscription = await user.related('subscriptions').create({
+                planId: plan.id,
+                status: 'pending',
+                startDate: startDate,
+                endDate: endDate,
+            })
+
+            if (!subscription) {
+                throw new Error('Subscription not created')
+            }
+
+            //attach payment to subscription
+            subscription.paymentId = payment.id.toString()
+            await subscription.save()
+
+            //attach subscription to payment
+            payment.subscriptionId = subscription.id
+            await payment.save()
+
+
+            //load payment and plan
+            await subscription.load('plan')
+            await subscription.load('payment')
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Subscription initialized successfully",
+                data: {
+                    payment_reference: paymentReference,
+                    checkout_url: checkoutUrl,
+                    ...subscription.serialize()
+                },
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code ?? "ERROR",
+                message: error.message ?? "Something went wrong",
+                data: null,
+            })
+        }
+
+    }
+    public async webhookPaystack({ request, response }: HttpContextContract) {
+        // const body = request.all()
+
+        const reference = request.input('reference')
+
+        if (!reference) {
+            return response.badRequest({
+                status: "failed",
+                code: "ERROR",
+                message: "Invalid reference",
+                data: null,
+            })
+        }
+
+        try {
+            const paystackResponse = await PaymentService.verifyPayment(reference)
+
+            if (paystackResponse.status) {
+                //update payment status
+                const payment = await Payment.query().where('reference', reference).first()
+
+                if (!payment) {
+                    throw new Error('Payment not found')
+                }
+
+                payment.paymentStatus = 'success'
+                payment.transactionId = paystackResponse.data.trxref
+                await payment.save()
+
+                //activate subscription
+                const subscription = await payment.related('subscription').query().first()
+
+                if (subscription) {
+                    subscription.status = 'active'
+                    await subscription.save()
+                }
+
+            }
+
+
+
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Subscription activated successfully",
+                data: null,
+            })
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code ?? "ERROR",
+                message: error.message ?? "Something went wrong",
+                data: null,
+            })
+        }
+    }
+    public async verify_subscription({ request, response, auth }: HttpContextContract) {
+        const user = auth.user!
+        const id = request.param('id')
+
+        try {
+
+            const subscription = await user.related('subscriptions').query()
+                .where('id', id)
+                .preload('plan')
+                .preload('payment')
+                .preload('payments')
+                .first();
+
+            if (!subscription) {
+                throw new Error('Subscription not found')
+            }
+
+            const payment = await subscription.related('payment').query().first()
+
+            if (!payment) {
+                throw new Error('Payment not found')
+            }
+
+            if (payment.paymentStatus != 'success') {
+                throw new Error('Payment not successful')
+            }
+
+            //update subscription status
+            if (subscription.status != 'active') {
+                subscription.status = 'active'
+                await subscription.save()
+            }
+
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Subscription verified successfully",
+                data: subscription,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code ?? "ERROR",
+                message: error.message ?? "Something went wrong",
+                data: null,
+            })
+        }
+    }
 
 }

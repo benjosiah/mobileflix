@@ -3,6 +3,7 @@ import { BaseModel, HasMany, ManyToMany, beforeSave, column, hasMany, manyToMany
 import Cast from './Cast'
 import Tag from './Tag'
 import Season from './Season'
+import Review from './Review'
 export default class Movie extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -95,6 +96,9 @@ export default class Movie extends BaseModel {
     }
   })
   public clips: HasMany<typeof Movie>
+
+  @hasMany(() => Review)
+  public reviews: HasMany<typeof Review>
 
 
 

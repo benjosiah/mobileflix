@@ -33,6 +33,11 @@ export default class extends BaseSchema {
      
       table.text('video_url').nullable() //eg. https://www.example.com/video.mp4
 
+      table.boolean('is_free').defaultTo(false)
+      table.boolean('is_featured').defaultTo(false)
+      table.boolean('is_premium').defaultTo(false)
+      table.boolean('is_trending').defaultTo(false)
+
 
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })

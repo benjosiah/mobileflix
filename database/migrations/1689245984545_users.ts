@@ -9,8 +9,15 @@ export default class extends BaseSchema {
       table.string('name')
       table.string('email')
       table.string('password')
+
+      table.integer('role_id').unsigned().references('id').inTable('roles').onDelete('CASCADE')
+      
+      
       table.boolean('is_subscribed').defaultTo(false)
-      table.bigInteger('plan_id').nullable()
+      table.integer('plan_id').nullable()
+
+      table.boolean('email_verified').defaultTo(false)
+
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })
     })

@@ -60,8 +60,8 @@ export default class AuthMiddleware {
   /**
    * Handle request
    */
-  public async handle (
-    { auth }: HttpContextContract,
+  public async handle(
+    { auth, response }: HttpContextContract,
     next: () => Promise<void>,
     customGuards: (keyof GuardsList)[]
   ) {
@@ -70,7 +70,17 @@ export default class AuthMiddleware {
      * the config file
      */
     const guards = customGuards.length ? customGuards : [auth.name]
-    await this.authenticate(auth, guards)
-    await next()
+    try {
+      await this.authenticate(auth, guards)
+      await next()
+    } catch (error) {
+      //custom error response
+      return response.unauthorized({
+        status: "error",
+        code: error.code,
+        message: error.messages?.errors[0]?.message || error.message || "Unauthorized access",
+        data: null
+      })
+    }
   }
 }

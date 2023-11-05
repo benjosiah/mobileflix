@@ -6,11 +6,11 @@ export default class Wallet extends BaseModel {
 	@column({isPrimary: true})
 	public id: number
 
-	@column({isPrimary: true})
-	public user_id: number
+	@column()
+	public userId: number
 
 	@column()
-	public balance: any
+	public balance: number
 
 	@column.dateTime({autoCreate: true})
 	public createdAt: DateTime

@@ -6,10 +6,28 @@ export default class Card extends BaseModel {
   public id: number
 
   @column()
-  public details: string
+  public userId: number
 
   @column()
-  public user_id: number
+  public cardNumber: string
+
+  @column()
+  public cardType: string
+
+  @column()
+  public cardName: string
+
+  @column()
+  public expiryMonth: number
+
+  @column()
+  public expiryYear: number
+
+  @column()
+  public cvv: number
+
+  @column()
+  public isDefault: boolean
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

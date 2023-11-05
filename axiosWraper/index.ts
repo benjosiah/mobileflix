@@ -1,5 +1,5 @@
 import axios from "axios";
-import { paystack } from "Config/service";
+import { paystack } from "Config/paystack";
 
 const PaystackAxios = axios.create({
     baseURL: paystack.base_rl,

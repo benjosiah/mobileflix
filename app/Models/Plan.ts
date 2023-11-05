@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, HasMany, column, hasMany } from '@ioc:Adonis/Lucid/Orm'
+import Subscription from './Subscription'
 
 export default class Plan extends BaseModel {
   @column({ isPrimary: true })
@@ -9,7 +10,16 @@ export default class Plan extends BaseModel {
   public name: string
 
   @column()
-  public price: any
+  public description: string
+
+  @column()
+  public price: number
+
+  @column()
+  public validityDays: number
+
+  @column()
+  public maxDevices: number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -17,5 +27,8 @@ export default class Plan extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  
+
+  // RELATIONSHIPS
+  @hasMany(() => Subscription)
+  public subscriptions: HasMany<typeof Subscription>
 }

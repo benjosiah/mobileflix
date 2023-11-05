@@ -1,102 +1,115 @@
-/*
-|--------------------------------------------------------------------------
-| Routes
-|--------------------------------------------------------------------------
-|
-| This file is dedicated for defining HTTP routes. A single file is enough
-| for majority of projects, however you can define routes in different
-| files and just make sure to import them inside this file. For example
-|
-| Define routes in following two files
-| ├── start/routes/cart.ts
-| ├── start/routes/customer.ts
-|
-| and then import them inside `start/routes.ts` as follows
-|
-| import './routes/cart'
-| import './routes/customer'
-|
-*/
-
 import Route from '@ioc:Adonis/Core/Route'
-/*import AutoSwagger from "adonis-autoswagger";
-import swagger from "Config/swagger";*/
 
-Route.get('/', async () => {
-	return { hello: 'world' }
+Route.get('/', async ({ view }) => {
+	return view.render('welcome')
 })
 
-// returns swagger in YAML
-/*Route.get("/swagger", async () => {
-	// @ts-ignore
-	return AutoSwagger.docs(Route.toJSON(), swagger);
-});
-
-// Renders Swagger-UI and passes YAML-output of /swagger
-Route.get("/docs", async () => {
-	return AutoSwagger.ui("/swagger");
-});*/
 
 
 // AUTHENTICATION
 Route.post('/register', 'AuthController.register')
 Route.post('/login', 'AuthController.login')
+Route.post('/verify-email', 'AuthController.verifyEmail')
+Route.post('/resend-verification-email', 'AuthController.resendVerificationEmail')
 Route.post('/forgot-password', 'AuthController.forgotPassword')
+Route.post('/check-reset-password-otp', 'AuthController.checkResetPasswordOTP')
 Route.post('/reset-password', 'AuthController.resetPassword')
-Route.post('/verify-reset-otp', 'AuthController.verifyResetOTP')
-Route.get('/verify-reset-token', 'AuthController.verifyResetTokenCallback')
 
-// PAYMENT AND SUBSCRIPTION
-Route.post('/verify-payment', 'SubscriptionsController.verifyPayments') //paystack webhook
-Route.get('/plans', 'SubscriptionsController.GetPlans')
+
+//plans
+Route.get('/plans', 'PlansController.index')
+Route.get('/plans/:id', 'PlansController.show').where('id', /^[0-9]+$/)
+
+//subscriptions webhooks
+Route.get('/subscriptions/webhook-paystack', 'SubscriptionsController.webhookPaystack')
 
 
 
 // AUTHENTICATED
 Route.group(() => {
-	Route.post('/accounts', 'AccountsController.add')
-	Route.get('accounts', 'AccountsController.index')
+
+	//auth
+	Route.post('/change-password', 'AuthController.changePassword')
+	Route.post('/logout', 'AuthController.logout')
+
+	// profile
+	Route.get('/profile', 'AuthController.profile')
+	Route.post('/profile', 'AuthController.updateProfile')
+
+
+	//accounts
+	Route.get('/accounts', 'AccountsController.index')
 	Route.get('/accounts/:id', 'AccountsController.show')
-	Route.patch('/accounts/:id', 'AccountsController.edit')
-	Route.get('/me', 'AuthController.GetUserInfo')
+	Route.post('/accounts', 'AccountsController.add')
+	Route.post('/accounts/:id', 'AccountsController.update')
+	Route.post('/accounts/delete/:id', 'AccountsController.delete')
+
+	//wallet
+	Route.get('/wallet', 'WalletController.index')
+
+	//cards
+	Route.get('/cards', 'CardsController.index')
+	Route.get('/cards/:id', 'CardsController.show').where('id', /^[0-9]+$/)
+	Route.post('/cards', 'CardsController.add')
+	Route.post('/cards/:id', 'CardsController.update')
+	Route.post('/cards/delete/:id', 'CardsController.delete')
+	Route.get('/cards/default/', 'CardsController.getDefault')
+	Route.post('/cards/default/:id', 'CardsController.setDefault')
+
+	//subscriptions
+	Route.get('/subscriptions', 'SubscriptionsController.index')
+	Route.get('/subscriptions/:id', 'SubscriptionsController.show').where('id', /^[0-9]+$/)
+	Route.get('/subscriptions/active', 'SubscriptionsController.getActiveSubscription')
+	Route.post('/subscriptions/initialize', 'SubscriptionsController.initialize_subscription')
+	Route.post('/subscriptions/verify/:id', 'SubscriptionsController.verify_subscription')
+	Route.post('/subscriptions/cancel/:id', 'SubscriptionsController.cancel').where('id', /^[0-9]+$/)
+
+	//payments
+	Route.get('/payments', 'PaymentsController.index')
+	Route.get('/payments/:id', 'PaymentsController.show').where('id', /^[0-9]+$/)
 
 
-	Route.post('/subscribe', 'SubscriptionsController.subscribeToPlan')
-	Route.get('/cards', 'SubscriptionsController.GetCard')
-	Route.post('/add-card', 'SubscriptionsController.addCard')
-	Route.post('/remove-card', 'SubscriptionsController.removeCard')
-	Route.post('/topup-wallet', 'SubscriptionsController.topUPWallet')
-	Route.get('/wallet', 'SubscriptionsController.GetWallet')
-	Route.get('/transactions', 'SubscriptionsController.GetTransactions')
 
-}).prefix('users').middleware('auth')
+}).middleware('auth')
 
 
 
 
-//MOVIES
-Route.group(() => {
-	Route.get('/', 'MoviesController.index') //list all movies
-	Route.get('/:id', 'MoviesController.show').where('id', /^[0-9]+$/) //get single movie
-}).prefix('movies')
 
-// CASTS
-Route.group(() => {
-	Route.get('/', 'CastsController.index') //list all casts
-}).prefix('casts')
 
-// CLIPS
-Route.group(() => {
-	Route.get('/', 'ClipsController.index') //list all clips
-}).prefix('clips')
+
+
+
+
 
 
 
 
 // ADMIN
 Route.group(() => {
+
+	//ALL ADMINS ACCESS
+
+
+
+	// SUPER ADMIN ACCESS ONLY
 	Route.group(() => {
 
-	})
-}).prefix('admin')
+		//plans
+		Route.post('/plans', 'PlansController.add')
+		Route.post('/plans/:id', 'PlansController.update')
+		Route.post('/plans/delete/:id', 'PlansController.delete')
+
+		//subscriptions
+		Route.get('/subscriptions', 'AdminController.subscriptions')
+		Route.get('/subscriptions/:id', 'AdminController.subscription').where('id', /^[0-9]+$/)
+
+		//payments
+		Route.get('/payments', 'AdminController.payments')
+		Route.get('/payments/:id', 'AdminController.payment').where('id', /^[0-9]+$/)
+
+	}).middleware('role:super-admin')
+
+
+}).prefix('admin').middleware(['auth', 'role:admin,super-admin'])
 

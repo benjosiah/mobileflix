@@ -1,10 +1,16 @@
 import { DateTime } from 'luxon'
 import Hash from '@ioc:Adonis/Core/Hash'
-import { BaseModel, beforeSave, belongsTo, BelongsTo, column, hasMany, HasMany, HasOne, hasOne } from '@ioc:Adonis/Lucid/Orm'
-import Account from './Account'
+import { BaseModel, BelongsTo, HasMany, HasOne, beforeSave, belongsTo, column, hasMany, hasOne } from '@ioc:Adonis/Lucid/Orm'
 import Wallet from './Wallet'
-import Subscription from './Subscription'
+import ResetToken from './ResetToken'
+import Role from './Role'
+import Account from './Account'
 import Plan from './Plan'
+import Subscription from './Subscription'
+import Card from './Card'
+import Review from './Review'
+import Payment from './Payment'
+
 
 export default class User extends BaseModel {
 	@column({ isPrimary: true })
@@ -20,10 +26,16 @@ export default class User extends BaseModel {
 	public password: string
 
 	@column()
-	public is_subscribed: boolean
+	public roleId: number
 
 	@column()
-	public plan_id: number
+	public isSubscribed: boolean
+
+	@column()
+	public planId: number | null
+
+	@column()
+	public emailVerified: boolean
 
 	@column.dateTime({ autoCreate: true })
 	public createdAt: DateTime
@@ -32,25 +44,40 @@ export default class User extends BaseModel {
 	public updatedAt: DateTime
 
 
-	@hasMany(() => Account, {
-		foreignKey: 'user_id',
-	})
+
+	// RELATIONSHIPS
+	@belongsTo(() => Role)
+	public role: BelongsTo<typeof Role>
+
+
+	@hasMany(() => ResetToken)
+	public resetTokens: HasMany<typeof ResetToken>
+
+
+	@hasMany(() => Account)
 	public accounts: HasMany<typeof Account>
 
-	@hasOne(() => Wallet, {
-		foreignKey: 'user_id',
-		localKey: 'id',
-	})
+	@hasOne(() => Wallet)
 	public wallet: HasOne<typeof Wallet>
 
-	@hasOne(() => Subscription)
-	public subscription: HasOne<typeof Subscription>
-
-	@belongsTo(() => Plan, {
-		foreignKey: 'plan_id',
-	})
+	@belongsTo(() => Plan)
 	public plan: BelongsTo<typeof Plan>
 
+	@hasMany(() => Subscription)
+	public subscriptions: HasMany<typeof Subscription>
+
+	@hasMany(() => Card)
+	public cards: HasMany<typeof Card>
+
+	@hasMany(() => Review)
+	public reviews: HasMany<typeof Review>
+
+	@hasMany(() => Payment)
+	public payments: HasMany<typeof Payment>
+
+
+
+	// hash password before saving to database
 	@beforeSave()
 	public static async hashPassword(user: User) {
 		if (user.$dirty.password) {

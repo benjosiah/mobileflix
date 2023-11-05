@@ -7,18 +7,28 @@ export default class extends BaseSeeder {
 	public async run() {
 		await User.createMany([
 			{
+				name: "Cinemo",
+				email: "mail.cinemo@gmail.com",
+				password: "password",
+				isSubscribed: true,
+				planId: 2,
+				roleId: 1, //super admin
+			},
+			{
 				name: "William",
 				email: "jesulonimii.will@gmail.com",
-				password: "password", //@jesulonimii, use your normal password here, It will now be automatically hashed (see User.ts)
-				is_subscribed: true,
-				plan_id: 2,
+				password: "password",
+				isSubscribed: true,
+				planId: 2,
+				roleId: 4, //user
 			},
 			{
 				name: "Seun",
 				email: "iamseunoyeniyi@gmail.com",
 				password: "password",
-				is_subscribed: true,
-				plan_id: 2,
+				isSubscribed: true,
+				planId: 2,
+				roleId: 4, //user
 			},
 		])
 	}

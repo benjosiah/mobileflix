@@ -7,12 +7,16 @@ export default class extends BaseSeeder {
 	public async run() {
 		await Wallet.createMany([
 			{
-				user_id: 1,
-				balance: "50000"
+				userId: 1,
+				balance: 50000
 			},
 			{
-				user_id: 2,
-				balance: "50000"
+				userId: 2,
+				balance: 50000
+			},
+			{
+				userId: 3,
+				balance: 50000
 			}
 		])
 	}

@@ -1,14 +1,10 @@
 
 interface InitiatePayment{
+    reference: string,
+    email: string
     amount: number,
-    user_id:number,
-
+    user_id: number,
+    callback_url: string
 }
 
-interface CardPayment{
-    amount: number,
-    user_id:number,
-    card_id:number
-}
-
-export {InitiatePayment, CardPayment}
+export {InitiatePayment}

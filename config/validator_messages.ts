@@ -48,6 +48,10 @@ const ValidatorMessages = {
     'requiredIfNotExists': 'The {{ field }} field is required',
     'requiredIfNotExistsAll': 'The {{ field }} field is required',
     'requiredIfNotExistsAny': 'The {{ field }} field is required',
+    'minLength': 'The {{ field }} field must be at least {{ options.minLength }}',
+    'maxLength': 'The {{ field }} field must be less than {{ options.maxLength }}',
+    'distinct': 'The {{ field }} field must be distinct',
+    'subset': 'The {{ field }} field must be a subset of {{ options.field }}',
 }
 
 export default ValidatorMessages

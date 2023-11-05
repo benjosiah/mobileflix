@@ -1,30 +1,21 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 
-export default class Transaction extends BaseModel {
+export default class Review extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
   @column()
-  public user_id: number
+  public userId: number
 
   @column()
-  public status: string
+  public movieId: number
 
   @column()
-  public amount: any
+  public rating: number
 
   @column()
-  public purpose: string
-
-  @column()
-  public channel: string
-
-  @column()
-  public details: string
-
-  @column()
-  public reference: string
+  public comment: string
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

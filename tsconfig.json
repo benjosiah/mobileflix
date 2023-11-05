@@ -5,7 +5,8 @@
   ],
   "exclude": [
     "node_modules",
-    "build"
+    "build",
+    "tmp"
   ],
   "compilerOptions": {
     "outDir": "build",

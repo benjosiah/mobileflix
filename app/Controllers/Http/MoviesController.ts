@@ -2,6 +2,7 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Movie from 'App/Models/Movie'
 import { rules, schema } from '@ioc:Adonis/Core/Validator'
 import ValidatorMessages from 'Config/validator_messages';
+import Drive from '@ioc:Adonis/Core/Drive'
 
 export default class MoviesController {
     public async index({ response, request }: HttpContextContract) {
@@ -49,7 +50,7 @@ export default class MoviesController {
             })
         }
     }
-    public async show({ response, params }: HttpContextContract) {
+    public async show({ response, params, request }: HttpContextContract) {
         const id = params.id
 
 
@@ -64,12 +65,34 @@ export default class MoviesController {
                 })
                 .firstOrFail()
 
-            return response.ok({
-                status: 'success',
-                code: "SUCCESS",
-                message: "Movie fetched successfully",
-                data: movie,
-            })
+
+            // const movieFilePath = 'goldline/videos/laptop.mp4';
+            const movieFilePath = 'goldline/videos/screen.mp4';
+            // const movieFilePath = 'buildwyze/videos/properties/1698192140479-istockphoto-1277361554-640_adpp_is.mp4';
+
+            const stats = await Drive.getStats(movieFilePath)
+            const size = stats.size
+
+
+            response.header('Content-Type', 'video/mp4')
+            response.header('Accept-Ranges', 'bytes')
+            response.header('Content-Length', size)
+            response.header('Content-Range', `bytes 0-${size}/${size}`)
+
+
+            const stream = await Drive.getStream(movieFilePath)
+
+           
+            response.stream(stream)
+
+
+
+            // return response.ok({
+            //     status: 'success',
+            //     code: "SUCCESS",
+            //     message: "Movie fetched successfully",
+            //     data: movie,
+            // })
         } catch (error) {
             return response.internalServerError({
                 status: 'error',
