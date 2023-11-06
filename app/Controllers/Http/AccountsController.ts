@@ -55,24 +55,24 @@ export default class AccountsController {
         const user = auth.user!
 
         //############################# Input Validation #############################
-		const userSchema = schema.create({
-			name: schema.string([
-				rules.required()
-			]),
-		})
-		// Re-format exception as a proper resonse for the Frontend Developer
-		//always use try catch block to catch any error that may occur while validating user input, front-end developers won't undertsand exceptions
-		try {
-			await request.validate({ schema: userSchema, messages: ValidatorMessages }) //@seunoyeniyi: I added messages for end user friendly error messages
-		} catch (error) {
-			return response.badRequest({
-				status: "failed",
-				code: error.code,
-				message: error.messages?.errors[0]?.message,
-				data: null
-			})
-		}
-		//############################# End Input Validation #############################
+        const userSchema = schema.create({
+            name: schema.string([
+                rules.required()
+            ]),
+        })
+        // Re-format exception as a proper resonse for the Frontend Developer
+        //always use try catch block to catch any error that may occur while validating user input, front-end developers won't undertsand exceptions
+        try {
+            await request.validate({ schema: userSchema, messages: ValidatorMessages }) //@seunoyeniyi: I added messages for end user friendly error messages
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code,
+                message: error.messages?.errors[0]?.message,
+                data: null
+            })
+        }
+        //############################# End Input Validation #############################
 
         try {
 
@@ -151,5 +151,66 @@ export default class AccountsController {
             })
         }
     }
+    public async switch({ auth, response, params }: HttpContextContract) {
+        const user = auth.user!
+
+        try {
+
+            
+            const account = await user.related('accounts').query().where('id', params.id).first();
+
+            if(!account){
+                throw new Error("Account not found")
+            }
+
+            user.accountId = account.id
+            await user.save()
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Account switched successfully",
+                data: account,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_SWITCH_ACCOUNT",
+                message: error.message || "Error switching account",
+                data: null,
+                user: null,
+            })
+        }
+    }
+    public async getActiveAccount({ auth, response }: HttpContextContract) {
+        const user = auth.user!
+
+        try {
+
+            const account = await user.related('account').query().first()
+
+            if(!account){
+                throw new Error("No active account found")
+            }
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Active account fetched successfully",
+                data: account,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_FETCH_ACTIVE_ACCOUNT",
+                message: error.message || "Error fetching active account",
+                data: null,
+                user: null,
+            })
+        }
+    }
+
 
 }

@@ -16,7 +16,11 @@ export default class extends BaseSchema {
       table.boolean('is_subscribed').defaultTo(false)
       table.integer('plan_id').nullable()
 
+      table.string("avatar").nullable()
+
       table.boolean('email_verified').defaultTo(false)
+
+      table.integer('account_id').unsigned().nullable() //current active watching account
 
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })

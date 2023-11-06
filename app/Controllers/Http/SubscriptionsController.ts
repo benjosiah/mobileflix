@@ -122,6 +122,7 @@ export default class SubscriptionsController {
 
             //remove plan from user
             user.planId = null
+            user.isSubscribed = false
             await user.save()
 
             return response.ok({
@@ -213,6 +214,23 @@ export default class SubscriptionsController {
             }
 
 
+            //cancel all pending payments - this is to prevent multiple payments for a single subscription
+            await user.related('payments').query()
+                .where('paymentStatus', 'pending')
+                .update({
+                    paymentStatus: 'canceled'
+                })
+
+            //cancel all pending subscriptions - this is to prevent multiple subscriptions for a single user
+            await user.related('subscriptions').query()
+                .where('status', 'pending')
+                .update({
+                    status: 'canceled'
+                })
+
+
+
+
 
             //calculate start date to end date from plan.validityDays for example 10 days
             const startDate = new Date()
@@ -280,60 +298,79 @@ export default class SubscriptionsController {
         }
 
     }
-    public async webhookPaystack({ request, response }: HttpContextContract) {
-        // const body = request.all()
-
-        const reference = request.input('reference')
-
-        if (!reference) {
-            return response.badRequest({
-                status: "failed",
-                code: "ERROR",
-                message: "Invalid reference",
-                data: null,
-            })
-        }
+    public async webhookPaystack({ request, view }: HttpContextContract) {
 
         try {
+            const reference = request.input('reference')
+
+            if (!reference) {
+                throw new Error('Reference not found')
+            }
+
             const paystackResponse = await PaymentService.verifyPayment(reference)
 
-            if (paystackResponse.status) {
-                //update payment status
-                const payment = await Payment.query().where('reference', reference).first()
+            if (!paystackResponse.status) {
+                throw new Error(paystackResponse.message)
+            }
 
-                if (!payment) {
-                    throw new Error('Payment not found')
-                }
+            //update payment status
+            const payment = await Payment.query().where('reference', reference).first()
+
+            if (!payment) {
+                throw new Error('Payment not found')
+            }
+
+            if (payment.paymentStatus != 'success') {
 
                 payment.paymentStatus = 'success'
                 payment.transactionId = paystackResponse.data.trxref
                 await payment.save()
 
-                //activate subscription
-                const subscription = await payment.related('subscription').query().first()
+            }
 
-                if (subscription) {
-                    subscription.status = 'active'
-                    await subscription.save()
+            //activate subscription
+            const subscription = await payment.related('subscription').query().first()
+
+            if (subscription) {
+                if (subscription.status != 'active') {
+
+                    //if subscription is not yet expired
+                    if (subscription.endDate > new Date()) {
+
+                        //activate subscription
+                        subscription.status = 'active'
+                        await subscription.save()
+
+                        //update user plan
+                        const user = await subscription.related('user').query().first()
+                        if (user) {
+                            user.planId = subscription.planId
+                            user.isSubscribed = true
+                            await user.save()
+                        }
+
+
+                    } else {
+                        throw new Error('Subscription already expired')
+                    }
+
+                } else {
+
+                    throw new Error('Subscription already active')
+
                 }
-
             }
 
 
 
-
-            return response.ok({
-                status: "success",
-                code: "SUCCESS",
-                message: "Subscription activated successfully",
-                data: null,
+            return view.render('front/successful-payment', {
+                message: paystackResponse.message
             })
+
+
         } catch (error) {
-            return response.badRequest({
-                status: "failed",
-                code: error.code ?? "ERROR",
-                message: error.message ?? "Something went wrong",
-                data: null,
+            return view.render('front/failed-payment', {
+                message: error.message ?? "Something went wrong"
             })
         }
     }
@@ -364,11 +401,20 @@ export default class SubscriptionsController {
                 throw new Error('Payment not successful')
             }
 
-            //update subscription status
-            if (subscription.status != 'active') {
-                subscription.status = 'active'
-                await subscription.save()
+            //if subscription is not yet expired
+            if (subscription.endDate < new Date()) {
+                throw new Error('Subscription already expired')
             }
+
+
+            //activate subscription
+            subscription.status = 'active'
+            await subscription.save()
+
+            //update user plan
+            user.planId = subscription.planId
+            user.isSubscribed = true
+            await user.save()
 
 
             return response.ok({

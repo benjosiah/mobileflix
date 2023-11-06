@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
 import Hash from '@ioc:Adonis/Core/Hash'
-import { BaseModel, BelongsTo, HasMany, HasOne, beforeSave, belongsTo, column, hasMany, hasOne } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, BelongsTo, HasMany, HasOne, beforeCreate, beforeSave, belongsTo, column, hasMany, hasOne } from '@ioc:Adonis/Lucid/Orm'
 import Wallet from './Wallet'
 import ResetToken from './ResetToken'
 import Role from './Role'
@@ -10,6 +10,7 @@ import Subscription from './Subscription'
 import Card from './Card'
 import Review from './Review'
 import Payment from './Payment'
+import WatchHistory from './WatchHistory'
 
 
 export default class User extends BaseModel {
@@ -35,7 +36,13 @@ export default class User extends BaseModel {
 	public planId: number | null
 
 	@column()
+	public avatar: string | null
+
+	@column()
 	public emailVerified: boolean
+
+	@column()
+	public accountId: number | null
 
 	@column.dateTime({ autoCreate: true })
 	public createdAt: DateTime
@@ -53,6 +60,8 @@ export default class User extends BaseModel {
 	@hasMany(() => ResetToken)
 	public resetTokens: HasMany<typeof ResetToken>
 
+	@hasOne(() => Account)
+	public account: HasOne<typeof Account> //current active watching account
 
 	@hasMany(() => Account)
 	public accounts: HasMany<typeof Account>
@@ -75,6 +84,8 @@ export default class User extends BaseModel {
 	@hasMany(() => Payment)
 	public payments: HasMany<typeof Payment>
 
+	@hasMany(() => WatchHistory)
+	public watchHistories: HasMany<typeof WatchHistory>
 
 
 	// hash password before saving to database
@@ -83,6 +94,12 @@ export default class User extends BaseModel {
 		if (user.$dirty.password) {
 			user.password = await Hash.make(user.password)
 		}
+	}
+
+	//set default avatar on create
+	@beforeCreate()
+	public static setDefaultAvatar(user: User) {
+		user.avatar = "https://ui-avatars.com/api/?name=" + user.name + "&background=random&color=fff"
 	}
 
 

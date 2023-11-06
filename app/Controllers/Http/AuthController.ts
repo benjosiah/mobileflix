@@ -54,6 +54,7 @@ export default class AuthController {
 			user.password = input.password //this will be hashed automatically by the beforeSave hook in the User model
 			user.roleId = userRole.id
 			user.planId = null //no plan yet (must be set to avoid error when preloading plan relationship at the bottom)
+			user.isSubscribed = false //not subscribed yet
 			await user.save()
 
 			if (!user.$isPersisted) {
@@ -66,6 +67,13 @@ export default class AuthController {
 
 			await user.related("wallet").create({});
 
+			//create default account (watching account)
+			const defaultAccount = await user.related("accounts").create({
+				name: user.name
+			});
+
+			user.accountId = defaultAccount.id;
+			await user.save();
 
 			// Email verification
 			// Generate 6 digit OTP
@@ -94,6 +102,7 @@ export default class AuthController {
 
 			await user.load("role");
 			await user.load("wallet");
+			await user.load("account");
 			await user.load("accounts");
 			await user.load("plan");
 
@@ -152,6 +161,7 @@ export default class AuthController {
 			const user = token.user;
 
 			await user.load('role');
+			await user.load('account')
 			await user.load('accounts')
 			await user.load('wallet')
 			await user.load('plan')
@@ -317,6 +327,7 @@ export default class AuthController {
 
 			await user.load('role');
 			await user.load('wallet');
+			await user.load('account');
 			await user.load('accounts');
 			await user.load('plan');
 
@@ -552,6 +563,7 @@ export default class AuthController {
 
 			await user.load('role');
 			await user.load('wallet');
+			await user.load('account');
 			await user.load('accounts');
 			await user.load('plan');
 

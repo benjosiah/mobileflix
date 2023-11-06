@@ -101,5 +101,34 @@ export default class extends BaseSeeder {
 
 
     ]);
+    //CLIPS
+    await TermRelationship.createMany([
+      //clips for movie 1
+      {
+        termId: 1, //clip id
+        termType: "clip",
+        objectId: 1, //movie id
+        objectType: "movie",
+      },
+      {
+        termId: 2, //clip id
+        termType: "clip",
+        objectId: 1, //movie id
+        objectType: "movie",
+      },
+      //clips for movie 2
+      {
+        termId: 1, //clip id
+        termType: "clip",
+        objectId: 2, //movie id
+        objectType: "movie",
+      },
+      {
+        termId: 2, //clip id
+        termType: "clip",
+        objectId: 2, //movie id
+        objectType: "movie",
+      },
+    ]);
   }
 }

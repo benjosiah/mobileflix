@@ -39,9 +39,11 @@ Route.group(() => {
 
 	//accounts
 	Route.get('/accounts', 'AccountsController.index')
-	Route.get('/accounts/:id', 'AccountsController.show')
+	Route.get('/accounts/:id', 'AccountsController.show').where('id', /^[0-9]+$/)
+	Route.post('/accounts/switch/:id', 'AccountsController.switch')
+	Route.get('/accounts/active', 'AccountsController.getActiveAccount')
 	Route.post('/accounts', 'AccountsController.add')
-	Route.post('/accounts/:id', 'AccountsController.update')
+	Route.post('/accounts/:id', 'AccountsController.update').where('id', /^[0-9]+$/)
 	Route.post('/accounts/delete/:id', 'AccountsController.delete')
 
 	//wallet
@@ -68,6 +70,18 @@ Route.group(() => {
 	Route.get('/payments', 'PaymentsController.index')
 	Route.get('/payments/:id', 'PaymentsController.show').where('id', /^[0-9]+$/)
 
+	//casts
+	Route.get('/casts', 'CastsController.index')
+	Route.get('/casts/:id', 'CastsController.show').where('id', /^[0-9]+$/)
+
+	//movies
+	Route.get('/movies', 'MoviesController.index')
+	Route.get('/movies/:id', 'MoviesController.show').where('id', /^[0-9]+$/)
+
+	//watch histories
+	Route.get('/watch-histories', 'WatchHistoriesController.index')
+	Route.post('/watch-histories', 'WatchHistoriesController.add_or_update')
+	Route.post('/watch-histories/delete/:id', 'WatchHistoriesController.delete').where('id', /^[0-9]+$/)
 
 
 }).middleware('auth')
@@ -89,7 +103,29 @@ Route.group(() => {
 Route.group(() => {
 
 	//ALL ADMINS ACCESS
+	//subscriptions
+	Route.get('/subscriptions', 'AdminController.subscriptions')
+	Route.get('/subscriptions/:id', 'AdminController.subscription').where('id', /^[0-9]+$/)
+	Route.post('/subscriptions/verify/:id', 'AdminController.verify_subscription').where('id', /^[0-9]+$/)
+	Route.post('/subscriptions/cancel/:id', 'AdminController.cancel_subscription').where('id', /^[0-9]+$/)
 
+	//payments
+	Route.get('/payments', 'AdminController.payments')
+	Route.get('/payments/:id', 'AdminController.payment').where('id', /^[0-9]+$/)
+	Route.post('/payments/verify/:id', 'AdminController.verify_payment').where('id', /^[0-9]+$/)
+	Route.post('/payments/cancel/:id', 'AdminController.cancel_payment').where('id', /^[0-9]+$/)
+
+	//users
+	Route.get('/users', 'AdminController.users')
+	Route.get('/users/:id', 'AdminController.user').where('id', /^[0-9]+$/)
+	Route.post('/users', 'AdminController.add_user')
+	Route.post('/users/:id', 'AdminController.update_user').where('id', /^[0-9]+$/)
+	Route.post('/users/delete/:id', 'AdminController.delete_user').where('id', /^[0-9]+$/)
+
+	//casts
+	Route.post('/casts', 'CastsController.create')
+	Route.post('/casts/:id', 'CastsController.update').where('id', /^[0-9]+$/)
+	Route.post('/casts/delete/:id', 'CastsController.delete').where('id', /^[0-9]+$/)
 
 
 	// SUPER ADMIN ACCESS ONLY
@@ -99,14 +135,6 @@ Route.group(() => {
 		Route.post('/plans', 'PlansController.add')
 		Route.post('/plans/:id', 'PlansController.update')
 		Route.post('/plans/delete/:id', 'PlansController.delete')
-
-		//subscriptions
-		Route.get('/subscriptions', 'AdminController.subscriptions')
-		Route.get('/subscriptions/:id', 'AdminController.subscription').where('id', /^[0-9]+$/)
-
-		//payments
-		Route.get('/payments', 'AdminController.payments')
-		Route.get('/payments/:id', 'AdminController.payment').where('id', /^[0-9]+$/)
 
 	}).middleware('role:super-admin')
 

@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeSave, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, beforeCreate, column } from '@ioc:Adonis/Lucid/Orm'
 
 export default class Tag extends BaseModel {
   @column({ isPrimary: true })
@@ -22,10 +22,14 @@ export default class Tag extends BaseModel {
 
 
   // ACTIONS
-  @beforeSave()
-  public static async slugify(tag: Tag) {
-    if (tag.$dirty.slug) {
-      tag.slug = tag.slug.toLowerCase().replace(/ /g, '-')
+  @beforeCreate()
+  public static async generateSlug(tag: Tag) {
+    var slug = tag.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+    //check if slug exists
+    var slugExists = await Tag.query().where('slug', slug);
+    if (slugExists.length > 0) {
+      slug = slug + '-' + Date.now()
     }
+    tag.slug = slug
   }
 }
