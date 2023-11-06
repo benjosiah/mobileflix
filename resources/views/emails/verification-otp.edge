@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Email</title>
+</head>
+
+<body
+    style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.42857143; color: #333;">
+
+    <div style="text-align: center; background-color: #F15612; padding: 1px;">
+        <h1 style="color: white; font-size: 28px;">
+            <a href="{{home_url}}" style="color: white; text-decoration: none;">{{company_name}}</a>
+        </h1>
+    </div>
+
+
+
+
+
+
+
+
+
+    <p>
+        Hi {{user.name}},
+    </p>
+    <p>
+        Welcome to <b>{{company_name}}</b>. We're thrilled to have you on board. First, you need to confirm your
+        account.
+    </p>
+
+    <p>
+        Please enter the following code to verify your email address.
+    </p>
+
+
+    <h1 style="text-align: center;">
+        {{ otp }}
+    </h1>
+
+
+
+
+
+
+
+    <hr style="border-top: 1px solid #ddd;">
+
+    <p style="border-left: 4px solid #F15612; padding-left: 10px;">
+        Please do not reply to this email. If you have any questions, please contact us at <a
+            href="mailto:{{support_email}}">{{support_email}}</a>.
+    </p>
+
+    <p style="border-left: 4px solid #F15612; padding-left: 10px;">
+        Thanks,
+        <br>
+        The <b>{{company_name}}</b> Team
+    </p>
+
+    <div style="text-align: center; background-color: #F15612; padding: 20px;">
+        <p style="color: white; font-size: 12px;">
+            {{company_address}}
+            <br>
+            <a href="{{privacy_policy_url}}" style="color: white;">Privacy Policy</a>
+            &middot;
+            <a href="{{contact_url}}" style="color: white;">Contact</a>
+
+        <p style="color: white; font-size: 12px;">
+            &copy; {{company_name}}. All rights reserved.
+        </p>
+
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, BelongsTo, belongsTo } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, BelongsTo, HasMany, HasOne, belongsTo, column, hasMany, hasOne } from '@ioc:Adonis/Lucid/Orm'
+import Payment from './Payment'
 import Plan from './Plan'
 import User from './User'
 
@@ -8,10 +9,22 @@ export default class Subscription extends BaseModel {
   public id: number
 
   @column()
-  public plan_id: number
+  public userId: number
 
   @column()
-  public user_id: number
+  public planId: number
+
+  @column()
+  public startDate: Date
+
+  @column()
+  public endDate: Date
+
+  @column()
+  public status: string
+
+  @column()
+  public paymentId: string | null
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -19,10 +32,19 @@ export default class Subscription extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @belongsTo(() => User)
-  public user: BelongsTo<typeof User>
+  // RELATIONSHIPS
+  @hasOne(() => Payment) //successfull payment
+  public payment: HasOne<typeof Payment>
+
+  @hasMany(() => Payment) //all successful & incomplete payments (for admin analysis)
+  public payments: HasMany<typeof Payment>
 
   @belongsTo(() => Plan)
   public plan: BelongsTo<typeof Plan>
+
+  @belongsTo(() => User)
+  public user: BelongsTo<typeof User>
+
+
 
 }

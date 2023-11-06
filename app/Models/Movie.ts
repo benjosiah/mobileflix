@@ -1,10 +1,10 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, HasMany, hasMany, belongsTo, BelongsTo } from '@ioc:Adonis/Lucid/Orm'
-import MovieClip from './MovieClip'
-import Series from './Series'
-import Season from './Season'
+import { BaseModel, BelongsTo, HasMany, ManyToMany, beforeCreate, belongsTo, column, hasMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
 import Cast from './Cast'
-
+import Tag from './Tag'
+import Season from './Season'
+import Review from './Review'
+import Media from './Media'
 export default class Movie extends BaseModel {
   @column({ isPrimary: true })
   public id: number
@@ -13,40 +13,49 @@ export default class Movie extends BaseModel {
   public title: string
 
   @column()
-  public plot: string
+  public slug: string
 
   @column()
-  public cast1_id: number
+  public userId: number
 
   @column()
-  public cast2_id: number
-
-  @column()
-  public cast3_id: number
-
-  @column()
-  public cast4_id: number
-
-  @column()
-  public cast5_id: number
-
-  @column()
-  public tags: string
+  public description: string
 
   @column()
   public genres: string
 
   @column()
-  public vidio_object: any
+  public type: string
 
   @column()
-  public is_series: boolean
+  public parentId: number
 
   @column()
-  public season_id: number
+  public seasonId: number
 
   @column()
-  public episode: number
+  public duration: number
+
+  @column()
+  public averageRating: number
+
+  @column()
+  public releasedAt: DateTime
+
+  @column()
+  public director: string
+
+  @column()
+  public clipId: number
+
+  @column()
+  public trailerId: number
+
+  @column()
+  public featuredImageId: number
+
+  @column()
+  public videoId: number
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
@@ -54,63 +63,94 @@ export default class Movie extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @hasMany(() => MovieClip, {
-    foreignKey: 'movie_id',
+
+  // RELATIONSHIPS
+  //featured image where this movie.featuredImageId = media.id
+  @belongsTo(() => Media, {
+    foreignKey: 'featuredImageId'
   })
-  public clips: HasMany<typeof MovieClip>
+  public featuredImage: BelongsTo<typeof Media>
 
-  @belongsTo(() => Series)
-  public series: BelongsTo<typeof Series>
-
-  @belongsTo(() => Season)
-  public season: BelongsTo<typeof Season>
-
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast1_id',
+  //video where this movie.videoId = media.id
+  @belongsTo(() => Media, {
+    foreignKey: 'videoId'
   })
-  public cast1: BelongsTo<typeof Cast>
+  public video: BelongsTo<typeof Media>
 
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast2_id',
+  //trailer where this movie.trailerId = media.id
+  @belongsTo(() => Media, {
+    foreignKey: 'trailerId'
   })
-  public cast2: BelongsTo<typeof Cast>
+  public trailer: BelongsTo<typeof Media>
 
-
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast3_id',
+  //clip where this movie.clipId = media.id
+  @belongsTo(() => Media, {
+    foreignKey: 'clipId'
   })
-  public cast3: BelongsTo<typeof Cast>
+  public clip: BelongsTo<typeof Media> //active preview clip
 
-
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast4_id',
+  //clips where this movie.id = term_relationships.object_id and term_relationships.object_type = 'movie' and term_relationships.term_type = 'clip' and term_relationships.term_id = media.id
+  @manyToMany(() => Media, {
+    pivotTable: 'term_relationships',
+    pivotForeignKey: 'object_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'term_id',
+    pivotColumns: ['object_type', 'term_type'],
+    onQuery(query) {
+      query.where('object_type', 'movie').where('term_type', 'clip')
+    }
   })
-  public cast4: BelongsTo<typeof Cast>
+  public clips: ManyToMany<typeof Media> //other clips
 
 
-  @belongsTo(() => Cast, {
-    foreignKey: 'cast5_id',
+  //casts
+  @manyToMany(() => Cast, {
+    pivotTable: 'term_relationships',
+    pivotForeignKey: 'object_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'term_id',
+    pivotColumns: ['object_type', 'term_type'],
+    onQuery(query) {
+      query.where('term_type', 'cast').where('object_type', 'movie')
+    }
   })
-  public cast5: BelongsTo<typeof Cast>
+  public casts: ManyToMany<typeof Cast>
 
-// @computed()
-//  public get casts() {
-//     return this.getCasts(this.cast)
-//   }
+  //tags
+  @manyToMany(() => Tag, {
+    pivotTable: 'term_relationships',
+    pivotForeignKey: 'object_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'term_id',
+    pivotColumns: ['object_type', 'term_type'],
+    onQuery(query) {
+      query.where('term_type', 'tag').where('object_type', 'movie')
+    }
+  })
+  public tags: ManyToMany<typeof Tag>
 
-//   public async getCasts(cast: any) {
-//     let casts = Array()
-//     let list = JSON.parse(cast)
-//     // return cast
-//     for(let x =0; x < list.length; x++){
-//          cast = await Cast.find(1)
+  //seasons
+  @hasMany(() => Season)
+  public seasons: HasMany<typeof Season>
 
-//         if(cast !== null){
-//             casts.push(cast)
-//         }  
-//     }
-//     // console.log(casts)
-//     return casts
+  @hasMany(() => Review)
+  public reviews: HasMany<typeof Review>
 
-//   }
+
+
+
+
+  // ACTIONS
+  //generate slug from title before saving
+  @beforeCreate()
+  public static async generateSlug(movie: Movie) {
+    var slug = movie.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
+    //check if slug exists
+    var slugExists = await Movie.query().where('slug', slug);
+    if (slugExists.length > 0) {
+      slug = slug + '-' + Date.now()
+    }
+    movie.slug = slug
+  }
+
 }

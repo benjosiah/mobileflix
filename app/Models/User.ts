@@ -1,53 +1,108 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany, HasMany, HasOne, hasOne, belongsTo, BelongsTo} from '@ioc:Adonis/Lucid/Orm'
-import Account from './Account'
+import Hash from '@ioc:Adonis/Core/Hash'
+import { BaseModel, BelongsTo, HasMany, HasOne, beforeCreate, beforeSave, belongsTo, column, hasMany, hasOne } from '@ioc:Adonis/Lucid/Orm'
 import Wallet from './Wallet'
-import Subscription from './Subscription'
+import ResetToken from './ResetToken'
+import Role from './Role'
+import Account from './Account'
 import Plan from './Plan'
+import Subscription from './Subscription'
+import Card from './Card'
+import Review from './Review'
+import Payment from './Payment'
+import WatchHistory from './WatchHistory'
+
 
 export default class User extends BaseModel {
-  @column({ isPrimary: true })
-  public id: number
+	@column({ isPrimary: true })
+	public id: number
 
-  @column()
-  public name: string
+	@column()
+	public name: string
 
-  @column()
-  public email: string  
-  
-  @column()
-  public password: string
+	@column()
+	public email: string
 
-  @column()
-  public is_subscribed: boolean
+	@column({ serializeAs: null }) //user password should not be serialized
+	public password: string
 
-  @column()
-  public plan_id: number
+	@column()
+	public roleId: number
 
-  @column.dateTime({ autoCreate: true })
-  public createdAt: DateTime
+	@column()
+	public isSubscribed: boolean
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  public updatedAt: DateTime
+	@column()
+	public planId: number | null
 
-  
-  @hasMany(() => Account, {
-    foreignKey: 'user_id',
-  })
-  public accounts: HasMany<typeof Account>
+	@column()
+	public avatar: string | null
 
-  @hasOne(() => Wallet, {
-    foreignKey: 'user_id',
-  })
-  public wallet: HasOne<typeof Wallet>
+	@column()
+	public emailVerified: boolean
 
-  @hasOne(() => Subscription)
-  public subscription: HasOne<typeof Subscription>
+	@column()
+	public accountId: number | null
 
-  @belongsTo(() => Plan, {
-    foreignKey: 'plan_id',
-  })
-  public plan: BelongsTo<typeof Plan>
+	@column.dateTime({ autoCreate: true })
+	public createdAt: DateTime
+
+	@column.dateTime({ autoCreate: true, autoUpdate: true })
+	public updatedAt: DateTime
+
+
+
+	// RELATIONSHIPS
+	@belongsTo(() => Role)
+	public role: BelongsTo<typeof Role>
+
+
+	@hasMany(() => ResetToken)
+	public resetTokens: HasMany<typeof ResetToken>
+
+	@hasOne(() => Account)
+	public account: HasOne<typeof Account> //current active watching account
+
+	@hasMany(() => Account)
+	public accounts: HasMany<typeof Account>
+
+	@hasOne(() => Wallet)
+	public wallet: HasOne<typeof Wallet>
+
+	@belongsTo(() => Plan)
+	public plan: BelongsTo<typeof Plan>
+
+	@hasMany(() => Subscription)
+	public subscriptions: HasMany<typeof Subscription>
+
+	@hasMany(() => Card)
+	public cards: HasMany<typeof Card>
+
+	@hasMany(() => Review)
+	public reviews: HasMany<typeof Review>
+
+	@hasMany(() => Payment)
+	public payments: HasMany<typeof Payment>
+
+	@hasMany(() => WatchHistory)
+	public watchHistories: HasMany<typeof WatchHistory>
+
+
+	// hash password before saving to database
+	@beforeSave()
+	public static async hashPassword(user: User) {
+		if (user.$dirty.password) {
+			user.password = await Hash.make(user.password)
+		}
+	}
+
+	//set default avatar on create
+	@beforeCreate()
+	public static setDefaultAvatar(user: User) {
+		user.avatar = "https://ui-avatars.com/api/?name=" + user.name + "&background=random&color=fff"
+	}
+
+
 }
 
 

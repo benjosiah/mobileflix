@@ -1,81 +1,216 @@
-import  { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { HttpException } from '@adonisjs/generic-exceptions';
-import Account from 'App/Models/Account'
-import { schema, rules } from '@ioc:Adonis/Core/Validator'
-// import User from 'App/Models/User'
+import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { rules, schema } from '@ioc:Adonis/Core/Validator'
+import ValidatorMessages from 'Config/validator_messages'
 
 export default class AccountsController {
-    public async add({ auth, request, response }: HttpContextContract) {
-  
+    public async index({ auth, response }: HttpContextContract) {
+        const user = auth.user!
+        try {
+
+            const accounts = await user.related('accounts').query()
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Accounts fetched successfully",
+                data: accounts,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_FETCH_ACCOUNTS",
+                message: error.message || "Error fetching accounts",
+                data: null,
+                user: null,
+            })
+        }
+
+    }
+    public async show({ auth, response, params }: HttpContextContract) {
+        const user = auth.user!
+        try {
+
+            const account = await user.related('accounts').query().where('id', params.id).firstOrFail()
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Account fetched successfully",
+                data: account,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_FETCH_ACCOUNT",
+                message: error.message || "Error fetching account",
+                data: null,
+                user: null,
+            })
+        }
+
+    }
+    public async add({ auth, response, request }: HttpContextContract) {
+        const user = auth.user!
+
+        //############################# Input Validation #############################
         const userSchema = schema.create({
             name: schema.string([
                 rules.required()
-            ])
+            ]),
+        })
+        // Re-format exception as a proper resonse for the Frontend Developer
+        //always use try catch block to catch any error that may occur while validating user input, front-end developers won't undertsand exceptions
+        try {
+            await request.validate({ schema: userSchema, messages: ValidatorMessages }) //@seunoyeniyi: I added messages for end user friendly error messages
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code,
+                message: error.messages?.errors[0]?.message,
+                data: null
+            })
+        }
+        //############################# End Input Validation #############################
+
+        try {
+
+            const account = await user.related('accounts').create({
+                name: request.input('name'),
             })
 
-            const payload = await request.validate({ schema: userSchema })
-        const user_id = auth.user?.id
-        if (user_id == null) {
-            return
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Account created successfully",
+                data: account,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_CREATE_ACCOUNT",
+                message: error.message || "Error creating account",
+                data: null,
+                user: null,
+            })
         }
-        const account = new Account()
-        account.name = payload.name
-        account.user_id = user_id
-        await account.save()
-    
-        return response.status(201).json({ message: 'Account Added Successfully', status: "success" })
-
 
     }
+    public async update({ auth, response, request, params }: HttpContextContract) {
+        const user = auth.user!
 
-    public async index({auth, response }: HttpContextContract) {
-     
-            const user_id = auth.user?.id
+        try {
+
+            const account = await user.related('accounts').query().where('id', params.id).firstOrFail()
+
+
+            await account.merge(request.only(['name'])).save()
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Account updated successfully",
+                data: account,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_UPDATE_ACCOUNT",
+                message: error.message || "Error updating account",
+                data: null,
+                user: null,
+            })
+        }
+    }
+    public async delete({ auth, response, params }: HttpContextContract) {
+        const user = auth.user!
+
+        try {
+
+            const account = await user.related('accounts').query().where('id', params.id).firstOrFail()
+
+            await account.delete()
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Account deleted successfully",
+                data: null,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_DELETE_ACCOUNT",
+                message: error.message || "Error deleting account",
+                data: null,
+                user: null,
+            })
+        }
+    }
+    public async switch({ auth, response, params }: HttpContextContract) {
+        const user = auth.user!
+
+        try {
+
             
-            if (user_id == null) {
-                return
+            const account = await user.related('accounts').query().where('id', params.id).first();
+
+            if(!account){
+                throw new Error("Account not found")
             }
-            const accounts = await Account.query().where('user_id', user_id)
-            return response.status(201).json({message:"All User's Accounts", data: accounts, status: "success"})
 
+            user.accountId = account.id
+            await user.save()
 
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Account switched successfully",
+                data: account,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_SWITCH_ACCOUNT",
+                message: error.message || "Error switching account",
+                data: null,
+                user: null,
+            })
+        }
+    }
+    public async getActiveAccount({ auth, response }: HttpContextContract) {
+        const user = auth.user!
+
+        try {
+
+            const account = await user.related('account').query().first()
+
+            if(!account){
+                throw new Error("No active account found")
+            }
+
+            return response.ok({
+                status: "success",
+                code: "SUCCESS",
+                message: "Active account fetched successfully",
+                data: account,
+            })
+
+        } catch (error) {
+            return response.badRequest({
+                status: "failed",
+                code: error.code || "ERR_FETCH_ACTIVE_ACCOUNT",
+                message: error.message || "Error fetching active account",
+                data: null,
+                user: null,
+            })
+        }
     }
 
-    public async show({response, params }: HttpContextContract) {
-       
-            const id = params.id
-            const account = await Account.find(id)
-            if (account== null) {
-                throw new HttpException('Account not found', 404);
-            }
-            return response.status(201).json({message: "Account Record", data: account, status: "success"})
- 
 
-     
-
-    }
-
-    public async edit({request, response, params }: HttpContextContract) {
-        
-            const userSchema = schema.create({
-                name: schema.string([
-                  rules.required()
-                ]),
-              })
-
-              const payload = await request.validate({ schema: userSchema })
-            const id = params.id
-        
-            const account = await Account.find(id)
-            if (account== null) {
-                throw new HttpException('Account not found', 404);
-            }
-            account.name = payload.name
-            await account.save()
-
-            return response.status(201).json({ message: 'Account Updated Successfully', data: account, status: "success" })
-
-  
-    }
-    
 }

@@ -19,3 +19,8 @@ sourceMapSupport.install({ handleUncaughtExceptions: false })
 new Ignitor(__dirname)
   .httpServer()
   .start()
+
+  // Resolve permission issue of MAC OS
+  // sudo chown -R $USER:$GROUP ~/.npm
+  // sudo chmod -R 777 /Users/seun/Documents/NodeJS/mobileflix
+  // sudo chmod -R 777 /Users/seun/Documents/NodeJS/mobileflix/node_modules
